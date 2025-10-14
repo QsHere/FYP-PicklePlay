@@ -1,0 +1,57 @@
+@using FYP_QS_CODE.Models
+@model FYP_QS_CODE.Models.Schedule
+@{
+    ViewData["Title"] = "Manage Requests";
+}
+
+<div class="container mt-4">
+    <h2>Manage Game Requests - @Model.Title</h2>
+
+    <div class="mb-3">
+        <button class="btn btn-outline-primary">Back to Schedule</button>
+    </div>
+
+    <div class="row">
+        <!-- Organizer -->
+        <div class="col-md-4">
+            <h5>Organizer (@Model.Participants.Count(p => p.IsOrganizer))</h5>
+            <ul class="list-group">
+                @foreach (var p in Model.Participants.Where(p => p.IsOrganizer))
+                {
+                    <li class="list-group-item">
+                        <img src="@p.ProfilePicUrl" width="30" class="rounded-circle me-2" /> 
+                        @p.DisplayName 
+                        <span class="badge bg-success">Organizer</span>
+                    </li>
+                }
+            </ul>
+        </div>
+
+        <!-- Confirmed -->
+        <div class="col-md-4">
+            <h5>Confirmed</h5>
+            <ul class="list-group">
+                @foreach (var p in Model.Participants.Where(p => p.Paid && !p.IsOrganizer))
+                {
+                    <li class="list-group-item">
+                        <img src="@p.ProfilePicUrl" width="30" class="rounded-circle me-2" /> @p.DisplayName
+                        <button class="btn btn-warning btn-sm float-end">Move to On Hold</button>
+                        <button class="btn btn-danger btn-sm float-end me-2">Remove</button>
+                    </li>
+                }
+            </ul>
+        </div>
+
+        <!-- On Hold -->
+        <div class="col-md-4">
+            <h5>On Hold</h5>
+            <ul class="list-group">
+                <li class="list-group-item">
+                    <img src="/img/avatarQS.png" width="30" class="rounded-circle me-2" /> QS
+                    <button class="btn btn-success btn-sm float-end">Confirm</button>
+                    <button class="btn btn-danger btn-sm float-end me-2">Remove</button>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,179 @@
+@{
+    ViewData["Title"] = "Create One-Off Game";
+}
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Create One-Off Game</h3>
+    <button type="button" class="btn btn-outline-secondary" onclick="confirmExit()">Back</button>
+</div>
+
+    <form>
+        <!-- Game Type -->
+        <div class="mb-3">
+            <label class="form-label">Event Tag</label>
+            <select class="form-select">
+                <option>Social</option>
+                <option>Competitive</option>
+                <option>Beginner-Friendly</option>
+                <option>Single Game</option>
+                <option>Training</option>
+            </select>
+        </div>
+
+        <!-- Start Time + Duration -->
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Start Time</label>
+                <input type="datetime-local" class="form-control"/>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Duration</label>
+                <select class="form-select">
+                    <option>0.5 hr</option><option>1 hr</option><option>1.5 hr</option>
+                    <option>2 hr</option><option>3 hr</option><option>4 hr</option>
+                    <option>5 hr</option><option>6 hr</option><option>7 hr</option><option>8 hr</option>
+                    <option>1 day</option><option>2 days</option><option>3 days</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Location -->
+        <div class="mb-3">
+            <label class="form-label">Location</label>
+            <input type="text" class="form-control"/>
+        </div>
+
+        <!-- Number of Players + Privacy -->
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Number of Players</label>
+                <input type="number" class="form-control"/>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Privacy</label>
+                <select class="form-select">
+                    <option>Public</option>
+                    <option>Private</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Game Fee -->
+        <div class="mb-3">
+            <label class="form-label">Game Fee</label>
+            <select class="form-select" id="feeSelect" onchange="toggleFeeInput()">
+                <option>None</option>
+                <option>Free</option>
+                <option>Auto Split Total</option>
+                <option>Per Person</option>
+            </select>
+            <div id="feeInput" class="mt-2" style="display:none;">
+                <input type="number" class="form-control" placeholder="Enter price (RM)" step="0.01"/>
+            </div>
+        </div>
+
+        <!-- Game Feature -->
+        <div class="mb-3">
+            <label class="form-label">Game Feature</label>
+            <select class="form-select">
+                <option>Normal Game</option>
+                <option>Premium Game</option>
+            </select>
+        </div>
+
+        <!-- Restrictions -->
+        <h5 class="mt-4">Restrictions</h5>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Min Rank</label>
+                <input type="number" class="form-control"/>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Max Rank</label>
+                <input type="number" class="form-control"/>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Gender</label>
+                <select class="form-select">
+                    <option>No Restriction</option>
+                    <option>Male</option>
+                    <option>Female</option>
+                </select>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Age Group</label>
+                <select class="form-select">
+                    <option>No Restriction</option>
+                    <option>Junior (Under 18)</option>
+                    <option>Adult (18-55)</option>
+                    <option>Senior (Above 55)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Advanced Options -->
+        <h5 class="mt-4">Advanced Options</h5>
+        <div class="mb-3">
+            <label class="form-label">Cancellation Freeze</label>
+            <select class="form-select">
+                <option>None</option>
+                <option>2 hr before</option><option>4 hr before</option><option>6 hr before</option>
+                <option>8 hr before</option><option>12 hr before</option><option>24 hr before</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Repeat</label>
+            <select class="form-select">
+                <option>None</option>
+                <option>Repeat for 1 week</option>
+                <option>Repeat for 2 weeks</option>
+                <option>Repeat for 3 weeks</option>
+                <option>Repeat for 4 weeks</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Host Role</label>
+            <select class="form-select">
+                <option>Host & Play</option>
+                <option>Host Only</option>
+            </select>
+        </div>
+
+        <!-- Game Info -->
+        <div class="mb-3">
+            <label class="form-label">Game Name</label>
+            <input type="text" maxlength="100" class="form-control"/>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Game Description</label>
+            <textarea class="form-control"></textarea>
+        </div>
+
+        <button class="btn btn-success">Create</button>
+    </form>
+</div>
+
+@section Scripts {
+<script>
+function toggleFeeInput(){
+    const feeSelect = document.getElementById("feeSelect");
+    const feeInput = document.getElementById("feeInput");
+    if(feeSelect.value === "Auto Split Total" || feeSelect.value === "Per Person"){
+        feeInput.style.display = "block";
+    } else {
+        feeInput.style.display = "none";
+    }
+}
+</script>
+
+<script>
+    function confirmExit() {
+        if (confirm("Are you sure you want to exit? No draft will be saved...")) {
+            window.location.href = '@Url.Action("Index","Community")';
+        }
+    }
+</script>
+}

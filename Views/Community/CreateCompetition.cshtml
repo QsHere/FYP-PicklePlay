@@ -1,0 +1,124 @@
+@{
+    ViewData["Title"] = "Create Competition";
+}
+
+<div class="container">
+    <h2>Create Competition</h2>
+    <form>
+        <!-- Competition Detail -->
+        <h5>Competition Detail</h5>
+        <div class="mb-3">
+            <label class="form-label">Location</label>
+            <input type="text" class="form-control"/>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Approximate Starting Time</label>
+            <input type="datetime-local" class="form-control"/>
+            <small class="text-muted">You can start your competition anytime once there are enough confirmed teams/players.</small>
+        </div>
+
+        <!-- Timeline -->
+        <h5 class="mt-4">Timeline</h5>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label>Registration Open</label>
+                <input type="datetime-local" class="form-control"/>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label>Earlybird Deadline (Optional)</label>
+                <input type="datetime-local" class="form-control"/>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label>Registration Deadline</label>
+                <input type="datetime-local" class="form-control"/>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label>Duration (Days)</label>
+                <input type="number" class="form-control"/>
+            </div>
+        </div>
+
+        <!-- Restrictions -->
+        <h5 class="mt-4">Restrictions</h5>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label>Min Rank</label>
+                <input type="number" class="form-control"/>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label>Max Rank</label>
+                <input type="number" class="form-control"/>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label>Gender</label>
+                <select class="form-select"><option>No Restriction</option><option>Male</option><option>Female</option></select>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label>Age Group</label>
+                <select class="form-select"><option>No Restriction</option><option>Junior (Under 18)</option><option>Adult (18-55)</option><option>Senior (Above 55)</option></select>
+            </div>
+        </div>
+
+        <!-- Fee -->
+        <div class="mb-3">
+            <label>Competition Fee</label>
+            <select class="form-select" id="compFeeSelect" onchange="toggleCompFee()">
+                <option>Free</option>
+                <option>Per Team</option>
+            </select>
+            <div id="compFeeInput" style="display:none;" class="mt-2">
+                <input type="number" class="form-control" placeholder="Enter price (RM)" step="0.01"/>
+            </div>
+        </div>
+
+        <!-- Privacy -->
+        <div class="mb-3">
+            <label>Privacy</label>
+            <select class="form-select">
+                <option>Public</option>
+                <option>Private</option>
+            </select>
+        </div>
+
+        <!-- Name & Description -->
+        <div class="mb-3">
+            <label>Competition Name</label>
+            <input type="text" maxlength="100" class="form-control"/>
+        </div>
+        <div class="mb-3">
+            <label>Competition Description</label>
+            <textarea class="form-control"></textarea>
+        </div>
+
+     <div class="d-flex justify-content-between align-items-center">
+    <button type="button" class="btn btn-outline-secondary" onclick="confirmExit()">Back</button>
+
+    <div>
+        <button type="button" class="btn btn-primary" onclick="saveDraftAndNext()">
+            Next Step
+        </button>        
+    </div>
+</div>
+    </form>
+
+@section Scripts {
+<script>
+function toggleCompFee(){
+    const select = document.getElementById("compFeeSelect");
+    document.getElementById("compFeeInput").style.display = select.value === "Per Team" ? "block" : "none";
+}
+function confirmExit() {
+        if (confirm("Are you sure you want to exit? No draft will be saved...")) {
+            window.location.href = '@Url.Action("Index","Community")';
+        }
+    }
+function saveDraftAndNext() {
+    alert("Competition details saved as draft. Redirecting to Setup Match...");
+    window.location.href = '@Url.Action("SetupMatch","Community")';
+}
+</script>
+}

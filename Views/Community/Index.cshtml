@@ -1,0 +1,127 @@
+@model IEnumerable<FYP_QS_CODE.Models.Schedule>
+@using FYP_QS_CODE.Models
+
+@{
+    ViewData["Title"] = "Community Details";
+    var today = DateTime.Today;
+    var groupedGames = Model.GroupBy(g => g.StartTime.Date).OrderBy(g => g.Key);           
+}
+
+<!-- ✅ Load Yi Jun's CSS only for this page -->
+<link rel="stylesheet" href="~/css/community-style-yijun.css" />
+
+<div class="container mt-4">
+    <div class="row">
+
+        <!-- Left: Community Info -->
+        <div class="col-md-3">
+            <div class="section-box">
+                <img src="~/img/logoV3.png" alt="Community" class="community-img" />
+                <h3>🏸 KL Pickleball Club</h3>
+                <p>Fun pickleball community for all skill levels!</p>
+                <p><strong>Members:</strong> 3</p>
+                <p><strong>Games Available:</strong> @Model.Count()</p>
+
+                <!-- Owner/Admin Controls -->
+                <button class="btn btn-primary w-100 mb-2" data-bs-toggle="modal" data-bs-target="#editCommunityModal">Edit Community</button>
+                <button class="btn btn-secondary w-100 mb-2" data-bs-toggle="modal" data-bs-target="#assignAdminModal">Assign Admins</button>
+                <button class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#inviteModal">+ Invite Friends</button>
+            </div>
+        </div>
+
+        <!-- Center: Games from Repository -->
+        <div class="col-md-6">
+            <div class="section-box">
+                <h2 class="mb-4">🎮 Games Schedule</h2>
+
+                @foreach (var dayGroup in groupedGames)
+                {
+                    <h4 class="mt-5">
+                        @dayGroup.Key.ToString("dd/MM/yyyy (dddd)")
+                    </h4>
+
+                    @foreach (var game in dayGroup.OrderBy(g => g.StartTime))
+                    {
+                        <h6 class="text-muted mt-3">@game.StartTime.ToString("hh:mm tt")</h6>
+                        <div class="card mb-3 shadow-sm game-card"
+                             onclick="location.href='@Url.Action("Details", "Schedule", new { id = game.Id })'"
+                             style="cursor:pointer;">
+                            <div class="card-body d-flex align-items-center">
+                                <img src="@game.CommunityIconUrl" alt="community" class="rounded-circle me-3" width="50" height="50" />
+                                <div>
+                                    <h5 class="card-title mb-1">
+                                        @game.Title
+                                        <!-- Bookmark icon -->
+                                        @if (game.IsBookmarked)
+                                        {
+                                            <i class="bi bi-bookmark-fill text-warning ms-2"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-bookmark ms-2"></i>
+                                        }
+                                    </h5>
+                                    <p class="mb-0"><strong>Location:</strong> @game.Location</p>
+                                    <p class="mb-0 text-muted">
+                                        <span class="badge bg-primary">@game.Tags.FirstOrDefault()</span>
+                                        <span class="ms-2">Confirmed: @game.Participants.Count(p => p.Paid)/@game.ParticipantLimit</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+
+        <!-- Right: Members + Create Buttons -->
+        <div class="col-md-3">
+            <div class="section-box">
+                <h5>👥 Members</h5>
+
+                <div class="member-card d-flex justify-content-between align-items-center">
+                    <strong>John Doe</strong>
+                    <button class="btn btn-sm btn-outline-secondary">Member</button>
+                </div>
+                <div class="member-card d-flex justify-content-between align-items-center">
+                    <strong>Jane Lee</strong>
+                    <button class="btn btn-sm btn-outline-primary">Admin</button>
+                </div>
+                <div class="member-card d-flex justify-content-between align-items-center">
+                    <strong>David Tan</strong>
+                    <button class="btn btn-sm btn-outline-secondary">Member</button>
+                </div>
+
+                <!-- View More -->
+                <div class="text-center mt-2">
+                    <a href="#" id="viewMoreMembers" class="text-decoration-none">View More ↓</a>
+                </div>
+
+                <hr />
+
+                <!-- Create Game Buttons -->
+                <div class="text-center mt-3">
+                    <h6>Create a New Game / Schedule</h6>
+                    <button class="btn btn-success btn-sm w-100 mt-2" onclick="location.href='@Url.Action("CreateRecurring","Community")'">
+                        📅 Recurring Schedule
+                    </button>
+                    <button class="btn btn-primary btn-sm w-100 mt-2" onclick="location.href='@Url.Action("CreateOneOff","Community")'">
+                        🎾 One-Off Game
+                    </button>
+                    <button class="btn btn-warning btn-sm w-100 mt-2" onclick="location.href='@Url.Action("CreateCompetition","Community")'">
+                        🏆 Competition
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Keep Yi Jun’s hover effect for games */
+    .game-card:hover {
+        background-color: #f8f9fa;
+        transform: scale(1.01);
+        transition: 0.2s;
+    }
+</style>

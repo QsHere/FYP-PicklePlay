@@ -1,0 +1,260 @@
+@model FYP_QS_CODE.Models.Schedule
+@using FYP_QS_CODE.Models
+@{
+    ViewData["Title"] = "Game Details";
+    var duration = (Model.EndTime - Model.StartTime).TotalMinutes;
+    var dayName = Model.StartTime.ToString("dddd");
+    //bool isOrganizer = true; // simulate organizer role
+    bool isOnHold = true;   // simulate user state
+    bool isConfirmed = false;
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>@Model.Title</h2>
+    @if (Model.IsBookmarked)
+    {
+        <i class="bi bi-bookmark-fill text-primary ms-2"></i>
+    }
+    else
+    {
+        <i class="bi bi-bookmark ms-2"></i>
+    }
+    <a class="btn btn-outline-secondary" asp-action="Index">Back</a>
+<div class="dropdown ms-2">
+        <button class="btn btn-sm btn-light border-0" type="button" id="settingsMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-gear-fill"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="settingsMenuButton">
+            <li>
+                <a class="dropdown-item text-primary" href="@Url.Action("Edit", "Schedule", new { id = Model.Id })">
+                    ✏️ Edit Schedule
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item text-danger" href="@Url.Action("Cancel", "Schedule", new { id = Model.Id })" 
+                   onclick="return confirm('Are you sure you want to cancel this game?');">
+                    ❌ Cancel Schedule
+                </a>
+            </li>
+            <li><a href="@Url.Action("ManageRequests", "Schedule", new { id = Model.Id })" class="dropdown-item text-primary">
+                   🧑‍🤝‍🧑Manage Participants
+        </a>
+        </li>
+             
+        </ul>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5>Overview</h5>
+                <p><strong>Type:</strong> @Model.GameType — <span class="text-danger">@Model.Restriction</span></p>
+                <p><strong>Location:</strong> @Model.Location</p>
+                <p><strong>Date:</strong> @Model.StartTime.ToString("dd/MM/yyyy dddd")</p>
+                <p><strong>Time:</strong> @((Model.EndTime - Model.StartTime).Hours) Hours (@Model.StartTime - @Model.EndTime)</p>
+                <p><strong>Price per Player:</strong> RM @Model.PricePerPlayer</p>
+                <p class="text-muted">@Model.Description</p>
+            </div>
+        </div>
+
+ <hr />
+
+    <h5>Organizer (@Model.Participants.Count(p => p.IsOrganizer))</h5>
+    <ul class="list-group mb-3">
+        @foreach (var p in Model.Participants.Where(p => p.IsOrganizer))
+        {
+            <li class="list-group-item">
+                <img src="@p.ProfilePicUrl" width="40" class="rounded-circle me-2" /> @p.DisplayName
+            </li>
+        }
+    </ul>
+
+    <h5>Confirmed (@Model.Participants.Count(p => p.Paid && !p.IsOrganizer))</h5>
+    <ul class="list-group mb-3">
+        @foreach (var p in Model.Participants.Where(p => p.Paid && !p.IsOrganizer))
+        {
+            <li class="list-group-item">
+                <img src="@p.ProfilePicUrl" width="40" class="rounded-circle me-2" /> @p.DisplayName
+            </li>
+        }
+    </ul>
+
+    <h5>On Hold</h5>
+    <ul class="list-group mb-3" id="onHoldList"></ul>
+
+    <hr />
+  <!-- Action Buttons -->
+    <button class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#joinGameModal">Join Game</button>
+
+    @if (isOnHold || isConfirmed)
+    {
+        <button class="btn btn-danger me-2">Quit Game</button>
+    }
+
+    <button class="btn btn-outline-secondary me-2">Message Host</button>
+    <button class="btn btn-outline-dark">Game Chat Room</button>
+
+</div>
+
+<style>
+    .bookmark-icon {
+        color: #6c757d;
+    }
+    .bookmark-icon:hover {
+        color: #0d6efd;
+        transform: scale(1.1);
+        transition: 0.2s;
+    }
+    .dropdown-menu .dropdown-item {
+    font-size: 0.95rem;
+    padding: 8px 15px;
+}
+</style>
+
+<!-- Join Game Modal -->
+<div class="modal fade" id="joinGameModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Join Game</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center">
+        <p>Select join option:</p>
+        <button class="btn btn-success me-2" onclick="joinIndividually()">Join Individually</button>
+        <button class="btn btn-primary" onclick="showTeamPrompt()">Join as Team</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Team Size Modal -->
+<div class="modal fade" id="teamSizeModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Team Size</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <label>How many people in your team (including you)?</label>
+        <input type="number" id="teamSizeInput" class="form-control" min="2" />
+        <button class="btn btn-primary mt-3" onclick="createTeam()">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Invite Options Modal -->
+<div class="modal fade" id="inviteOptionsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Team Member</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center">
+        <button class="btn btn-primary me-2" onclick="inviteFriend()">Invite Friend</button>
+        <button class="btn btn-success" onclick="findBestPartner()">Find Best Partner</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Friend List Modal -->
+<div class="modal fade" id="friendListModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Invite Friend</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <ul class="list-group">
+            <li class="list-group-item">John Lee <button class="btn btn-sm btn-primary float-end" onclick="inviteSent(this)">Invite</button></li>
+            <li class="list-group-item">Amir Rahman <button class="btn btn-sm btn-primary float-end" onclick="inviteSent(this)">Invite</button></li>
+            <li class="list-group-item">Sophia Lim <button class="btn btn-sm btn-primary float-end" onclick="inviteSent(this)">Invite</button></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AI Partner Modal -->
+<div class="modal fade" id="aiPartnerModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">AI Partner Suggestion</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center">
+        <div id="aiLoading">
+            <div class="spinner-border text-success" role="status"></div>
+            <p>Analyzing playstyle...</p>
+        </div>
+        <div id="aiResult" style="display:none;">
+            <ul class="list-group">
+                <li class="list-group-item">David Wong <button class="btn btn-sm btn-primary float-end">Invite</button> <button class="btn btn-sm btn-outline-success float-end me-2">Add Friend</button></li>
+                <li class="list-group-item">Mei Chen <button class="btn btn-sm btn-primary float-end">Invite</button> <button class="btn btn-sm btn-outline-success float-end me-2">Add Friend</button></li>
+            </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+    function joinIndividually() {
+        document.getElementById("onHoldList").innerHTML += `
+          <li class="list-group-item">
+            <img src="/img/avatarQS.png" width="40" class="rounded-circle me-2" /> QS
+            <button class="btn btn-warning btn-sm float-end">Make Payment</button>
+          </li>`;
+        bootstrap.Modal.getInstance(document.getElementById('joinGameModal')).hide();
+    }
+
+    function showTeamPrompt() {
+        bootstrap.Modal.getInstance(document.getElementById('joinGameModal')).hide();
+        new bootstrap.Modal(document.getElementById('teamSizeModal')).show();
+    }
+
+    function createTeam() {
+        let teamSize = document.getElementById("teamSizeInput").value;
+        let list = document.getElementById("onHoldList");
+        list.innerHTML += `
+          <li class="list-group-item">
+            <img src="/img/avatarQS.png" width="40" class="rounded-circle me-2" /> QS (Leader)
+            <button class="btn btn-outline-success btn-sm float-end" onclick="openInviteOptions()">+</button>
+          </li>`;
+        for (let i = 1; i < teamSize; i++) {
+            list.innerHTML += `<li class="list-group-item text-muted">+ Reserved Slot</li>`;
+        }
+        bootstrap.Modal.getInstance(document.getElementById('teamSizeModal')).hide();
+    }
+
+    function openInviteOptions() {
+        new bootstrap.Modal(document.getElementById('inviteOptionsModal')).show();
+    }
+
+    function inviteFriend() {
+        bootstrap.Modal.getInstance(document.getElementById('inviteOptionsModal')).hide();
+        new bootstrap.Modal(document.getElementById('friendListModal')).show();
+    }
+
+    function inviteSent(btn) {
+        btn.innerText = "Invite Sent";
+        btn.disabled = true;
+    }
+
+    function findBestPartner() {
+        bootstrap.Modal.getInstance(document.getElementById('inviteOptionsModal')).hide();
+        let modal = new bootstrap.Modal(document.getElementById('aiPartnerModal'));
+        modal.show();
+        setTimeout(() => {
+            document.getElementById("aiLoading").style.display = "none";
+            document.getElementById("aiResult").style.display = "block";
+        }, 3000);
+    }
+</script>
