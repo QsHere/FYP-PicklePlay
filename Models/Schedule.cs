@@ -1,100 +1,86 @@
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FYP_QS_CODE.Models
 {
-    public enum GameType { Social = 0, Competition = 1 }
-    public enum CompetitionFormat { Knockout = 0, RoundRobin = 1, PoolPlay = 2 }
-    public enum EventTag { BeginnerFriendly = 0, Competitive = 1, Training = 2, SingleGame = 3, Social = 4}
-
+    [Table("schedule")]
     public class Schedule
     {
-        public Guid Id { get; set; } = Guid.NewGuid();
+        [Key]
+        [Column("schedule_id")]
+        public int ScheduleId { get; set; }
 
-        [Required, StringLength(80)]
-        public string Title { get; set; } = "";
+        [Column("gameName")]
+        [StringLength(255)]
+        public string? GameName { get; set; }
 
-        [StringLength(300)]
+        [Column("schedule_type", TypeName = "enum('OneOff','Recurring','Competition')")]
+        public ScheduleType? ScheduleType { get; set; }
+
+        [Column("event_tag", TypeName = "enum('None','Beginner-Friendly','Competitive','Single-Game','Training')")]
+        public EventTag? EventTag { get; set; } = Models.EventTag.None;
+
+        [Column("description", TypeName = "longtext")]
         public string? Description { get; set; }
 
-        [Required]
-        public GameType GameType { get; set; }
+        [Column("location")]
+        [StringLength(255)]
+        public string? Location { get; set; }
 
-        public CompetitionFormat? CompetitionFormat { get; set; }
+        [Column("startTime")]
+        public DateTime? StartTime { get; set; }
 
-        [Required, StringLength(80)]
-        public string Location { get; set; } = "";   // 🔹 Changed from Venue → Location
+        [Column("duration", TypeName = "enum('0.5h','1h','1.5h','2h','2.5h','3h','3.5h','4h','5h','6h','7h','8h','1d','2d','3d')")]
+        public Duration? Duration { get; set; }
 
-        [Display(Name = "Start Time")]
-        public DateTime StartTime { get; set; }
+        [Column("num_player")]
+        public int? NumPlayer { get; set; }
 
-        [Display(Name = "End Time")]
-        public DateTime EndTime { get; set; }
+        [Column("minRankRestriction", TypeName = "decimal(5,4)")]
+        public decimal? MinRankRestriction { get; set; }
 
-        [Range(1, 16)]
-        [Display(Name = "Courts")]
-        public int CourtCount { get; set; } = 1;
+        [Column("maxRankRestriction", TypeName = "decimal(5,4)")]
+        public decimal? MaxRankRestriction { get; set; }
 
-        [Range(2, 200)]
-        [Display(Name = "Participant Limit")]
-        public int ParticipantLimit { get; set; } = 8;
+        [Column("genderRestriction", TypeName = "enum('None','Male','Female')")]
+        public GenderRestriction? GenderRestriction { get; set; } = Models.GenderRestriction.None;
 
-        public List<EventTag> Tags { get; set; } = new();
-
-        // NEW 🔹
-        public string CommunityName { get; set; } = "PicklePlay Club";
-        public string CommunityIconUrl { get; set; } = string.Empty;
-
-        public string Restriction { get; set; } = "Open to All";
-        public decimal PricePerPlayer { get; set; } = 0;
-
-        public List<Participant> Participants { get; set; } = new();
-        public List<JoinRequest> JoinRequests { get; set; } = new();
-        public List<BracketMatch> Bracket { get; set; } = new();
-
-        // Properties for MyGames page
-        public bool IsCancelled { get; set; }   // mark if game cancelled
-        public bool IsQuit { get; set; }        // mark if user quit
-        public bool IsBookmarked { get; set; }  // mark if user bookmarked
-        public bool IsEnded { get; set; } // true only when host clicks "End Game"
-
+        [Column("ageGroupRestriction", TypeName = "enum('Junior','Adult','Senior')")]
+        public AgeGroupRestriction? AgeGroupRestriction { get; set; } = Models.AgeGroupRestriction.Adult;
         
-public List<Endorsement> Endorsements { get; set; } = new();
+        [Column("feeType", TypeName = "enum('None','Free','AutoSplitTotal','PerPerson')")]
+        public FeeType? FeeType { get; set; } = Models.FeeType.PerPerson;
+
+        [Column("feeAmount", TypeName = "decimal(8,2)")]
+        public decimal? FeeAmount { get; set; }
+
+        [Column("privacy", TypeName = "enum('Public','Private')")]
+        public Privacy? Privacy { get; set; } = Models.Privacy.Public;
+
+        [Column("gameFeature", TypeName = "enum('Basic','Ranking')")]
+        public GameFeature? GameFeature { get; set; } = Models.GameFeature.Basic;
+
+        [Column("cancellationfreeze", TypeName = "enum('None','2hr before','4hr before','6hr before','8hr before','12hr before','24hr before')")]
+        public CancellationFreeze? CancellationFreeze { get; set; } = Models.CancellationFreeze.None;
+
+        [Column("repeat", TypeName = "enum('None','Repeat for 1 week','Repeat for 2 week','Repeat for 3 week','Repeat for 4 week')")]
+        public Repeat? Repeat { get; set; } = Models.Repeat.None;
+
+        [Column("hostrole", TypeName = "enum('HostAndPlay','HostOnly')")]
+        public HostRole? HostRole { get; set; } = Models.HostRole.HostAndPlay;
+
+        // --- Other columns from your table ---
+        // We are skipping these as requested or they have defaults:
+        // schedule_id (auto-increment)
+        // approxStartTime (for competition)
+        // endTime (for competition)
+        // num_team (for competition)
+        // status (has default)
+        // recurringWeek (for recurring)
+        // autoCreateWhen (has default)
+
+        [Column("status", TypeName = "enum('Null','Active','Past','Quit','Cancelled')")]
+        public ScheduleStatus? Status { get; set; } = ScheduleStatus.Null;
     }
-
-    public class Participant
-    {
-        public Guid Id { get; set; } = Guid.NewGuid();
-        [Required, StringLength(60)]
-        public string DisplayName { get; set; } = "";
-        public bool IsOrganizer { get; set; } = false;   // 🔹 New
-        public bool Paid { get; set; }
-        public string ProfilePicUrl { get; set; } = "/img/default-avatar.png";  // 🔹 New
-        public DateTime JoinedAt { get; set; } = DateTime.UtcNow;
-    }
-
-    public enum JoinStatus { Requested, Confirmed, OnHold, Declined }
-
-    public class JoinRequest
-    {
-        public Guid Id { get; set; } = Guid.NewGuid();
-        public string RequesterName { get; set; } = "";
-        public DateTime RequestedAt { get; set; } = DateTime.UtcNow;
-        public JoinStatus Status { get; set; } = JoinStatus.Requested;
-    }
-
-    public enum MatchStatus { NotStarted, InProgress, Final }
-
-    public class BracketMatch
-    {
-        public Guid Id { get; set; } = Guid.NewGuid();
-        public int Round { get; set; }
-        public string SideA { get; set; } = "-";
-        public string SideB { get; set; } = "-";
-        public string Score { get; set; } = "";
-        public MatchStatus Status { get; set; } = MatchStatus.NotStarted;
-    }
-    
-    
 }

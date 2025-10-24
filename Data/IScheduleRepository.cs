@@ -7,12 +7,12 @@ namespace FYP_QS_CODE.Data
     public interface IScheduleRepository
     {
         IEnumerable<Schedule> All();
-        Schedule? Get(Guid id);
+        Schedule? Get(int id); // Changed from Guid to int
         void Add(Schedule s);
         void Update(Schedule s);
-        void AddJoinRequest(Guid scheduleId, JoinRequest req);
-        void UpdateJoinRequest(Guid scheduleId, Guid requestId, JoinStatus status);
-        void ConfirmRequest(Guid scheduleId, Guid requestId);
-        void Seed();
+        
+        // We remove JoinRequest/ConfirmRequest/Seed
+        // They will be re-added when you build those features
+        // with their own tables and repositories.
     }
 }

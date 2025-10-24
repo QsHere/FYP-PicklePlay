@@ -1,20 +1,32 @@
 using FYP_QS_CODE.Data;
+using Microsoft.EntityFrameworkCore; // Add this
 
 var builder = WebApplication.CreateBuilder(args);
 
+// --- Add DbContext ---
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+// ---------------------
+
 builder.Services.AddControllersWithViews();
 
-// register in-memory repo (swap with EF/MySQL later)
-builder.Services.AddSingleton<IScheduleRepository, InMemoryScheduleRepository>();
+// --- SWAP REPOSITORIES ---
+// REMOVE: builder.Services.AddSingleton<IScheduleRepository, InMemoryScheduleRepository>();
+// ADD:
+builder.Services.AddScoped<IScheduleRepository, MySqlScheduleRepository>();
+// -------------------------
 
 var app = builder.Build();
 
-// seed demo data
-using (var scope = app.Services.CreateScope())
-{
-    var repo = scope.ServiceProvider.GetRequiredService<IScheduleRepository>();
-    repo.Seed();
-}
+// --- REMOVE SEEDING ---
+// The old seed method is for in-memory data.
+// using (var scope = app.Services.CreateScope())
+// {
+//     var repo = scope.ServiceProvider.GetRequiredService<IScheduleRepository>();
+//     repo.Seed();
+// }
+// ------------------------
 
 if (!app.Environment.IsDevelopment())
 {

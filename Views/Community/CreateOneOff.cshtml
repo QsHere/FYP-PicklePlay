@@ -1,179 +1,168 @@
+@model FYP_QS_CODE.Models.ScheduleCreateViewModel
 @{
     ViewData["Title"] = "Create One-Off Game";
 }
 
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3>Create One-Off Game</h3>
-    <button type="button" class="btn btn-outline-secondary" onclick="confirmExit()">Back</button>
-</div>
+        <h3>Create One-Off Game</h3>
+        <button type="button" class="btn btn-outline-secondary" onclick="confirmExit()">Back</button>
+    </div>
 
-    <form>
-        <!-- Game Type -->
+    <form asp-action="CreateOneOff" method="post">
+        @Html.AntiForgeryToken()
+
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
         <div class="mb-3">
-            <label class="form-label">Event Tag</label>
-            <select class="form-select">
-                <option>Social</option>
-                <option>Competitive</option>
-                <option>Beginner-Friendly</option>
-                <option>Single Game</option>
-                <option>Training</option>
-            </select>
+            <label asp-for="GameName" class="form-label"></label>
+            <input asp-for="GameName" type="text" maxlength="100" class="form-control" />
+            <span asp-validation-for="GameName" class="text-danger"></span>
         </div>
 
-        <!-- Start Time + Duration -->
+        <div class="mb-3">
+            <label asp-for="Description" class="form-label"></label>
+            <textarea asp-for="Description" class="form-control"></textarea>
+            <span asp-validation-for="Description" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="EventTag" class="form-label"></label>
+            <select asp-for="EventTag" asp-items="Html.GetEnumSelectList<EventTag>()" class="form-select"></select>
+            <span asp-validation-for="EventTag" class="text-danger"></span>
+        </div>
+
         <div class="row">
             <div class="col-md-6 mb-3">
-                <label class="form-label">Start Time</label>
-                <input type="datetime-local" class="form-control"/>
+                <label asp-for="StartTime" class="form-label"></label>
+                <input asp-for="StartTime" type="datetime-local" class="form-control" />
+                <span asp-validation-for="StartTime" class="text-danger"></span>
             </div>
             <div class="col-md-6 mb-3">
-                <label class="form-label">Duration</label>
-                <select class="form-select">
-                    <option>0.5 hr</option><option>1 hr</option><option>1.5 hr</option>
-                    <option>2 hr</option><option>3 hr</option><option>4 hr</option>
-                    <option>5 hr</option><option>6 hr</option><option>7 hr</option><option>8 hr</option>
-                    <option>1 day</option><option>2 days</option><option>3 days</option>
-                </select>
+                <label asp-for="Duration" class="form-label"></label>
+                <select asp-for="Duration" asp-items="Html.GetEnumSelectList<Duration>()" class="form-select"></select>
+                <span asp-validation-for="Duration" class="text-danger"></span>
             </div>
         </div>
 
-        <!-- Location -->
         <div class="mb-3">
-            <label class="form-label">Location</label>
-            <input type="text" class="form-control"/>
+            <label asp-for="Location" class="form-label"></label>
+            <input asp-for="Location" type="text" class="form-control" />
+            <span asp-validation-for="Location" class="text-danger"></span>
         </div>
 
-        <!-- Number of Players + Privacy -->
         <div class="row">
             <div class="col-md-6 mb-3">
-                <label class="form-label">Number of Players</label>
-                <input type="number" class="form-control"/>
+                <label asp-for="NumPlayer" class="form-label"></label>
+                <input asp-for="NumPlayer" type="number" class="form-control" />
+                <span asp-validation-for="NumPlayer" class="text-danger"></span>
             </div>
             <div class="col-md-6 mb-3">
-                <label class="form-label">Privacy</label>
-                <select class="form-select">
-                    <option>Public</option>
-                    <option>Private</option>
-                </select>
+                <label asp-for="Privacy" class="form-label"></label>
+                <select asp-for="Privacy" asp-items="Html.GetEnumSelectList<Privacy>()" class="form-select"></select>
+                <span asp-validation-for="Privacy" class="text-danger"></span>
             </div>
         </div>
 
-        <!-- Game Fee -->
         <div class="mb-3">
-            <label class="form-label">Game Fee</label>
-            <select class="form-select" id="feeSelect" onchange="toggleFeeInput()">
-                <option>None</option>
-                <option>Free</option>
-                <option>Auto Split Total</option>
-                <option>Per Person</option>
-            </select>
+            <label asp-for="FeeType" class="form-label"></label>
+            <select asp-for="FeeType" asp-items="Html.GetEnumSelectList<FeeType>()" class="form-select" id="feeSelect" onchange="toggleFeeInput()"></select>
+            <span asp-validation-for="FeeType" class="text-danger"></span>
+            
             <div id="feeInput" class="mt-2" style="display:none;">
-                <input type="number" class="form-control" placeholder="Enter price (RM)" step="0.01"/>
+                <label asp-for="FeeAmount" class="form-label"></label>
+                <input asp-for="FeeAmount" type="number" class="form-control" placeholder="Enter price (RM)" step="0.01" />
+                <span asp-validation-for="FeeAmount" class="text-danger"></span>
             </div>
         </div>
 
-        <!-- Game Feature -->
         <div class="mb-3">
-            <label class="form-label">Game Feature</label>
-            <select class="form-select">
-                <option>Normal Game</option>
-                <option>Premium Game</option>
-            </select>
+            <label asp-for="GameFeature" class="form-label"></label>
+            <select asp-for="GameFeature" asp-items="Html.GetEnumSelectList<GameFeature>()" class="form-select"></select>
+            <span asp-validation-for="GameFeature" class="text-danger"></span>
         </div>
 
-        <!-- Restrictions -->
         <h5 class="mt-4">Restrictions</h5>
         <div class="row">
             <div class="col-md-6 mb-3">
-                <label class="form-label">Min Rank</label>
-                <input type="number" class="form-control"/>
+                <label asp-for="MinRankRestriction" class="form-label"></label>
+                <input asp-for="MinRankRestriction" type="number" class="form-control" />
+                <span asp-validation-for="MinRankRestriction" class="text-danger"></span>
             </div>
             <div class="col-md-6 mb-3">
-                <label class="form-label">Max Rank</label>
-                <input type="number" class="form-control"/>
+                <label asp-for="MaxRankRestriction" class="form-label"></label>
+                <input asp-for="MaxRankRestriction" type="number" class="form-control" />
+                <span asp-validation-for="MaxRankRestriction" class="text-danger"></span>
             </div>
         </div>
         <div class="row">
             <div class="col-md-6 mb-3">
-                <label class="form-label">Gender</label>
-                <select class="form-select">
-                    <option>No Restriction</option>
-                    <option>Male</option>
-                    <option>Female</option>
-                </select>
+                <label asp-for="GenderRestriction" class="form-label"></label>
+                <select asp-for="GenderRestriction" asp-items="Html.GetEnumSelectList<GenderRestriction>()" class="form-select"></select>
+                <span asp-validation-for="GenderRestriction" class="text-danger"></span>
             </div>
             <div class="col-md-6 mb-3">
-                <label class="form-label">Age Group</label>
-                <select class="form-select">
-                    <option>No Restriction</option>
-                    <option>Junior (Under 18)</option>
-                    <option>Adult (18-55)</option>
-                    <option>Senior (Above 55)</option>
-                </select>
+                <label asp-for="AgeGroupRestriction" class="form-label"></label>
+                <select asp-for="AgeGroupRestriction" asp-items="Html.GetEnumSelectList<AgeGroupRestriction>()" class="form-select"></select>
+                <span asp-validation-for="AgeGroupRestriction" class="text-danger"></span>
             </div>
         </div>
 
-        <!-- Advanced Options -->
         <h5 class="mt-4">Advanced Options</h5>
         <div class="mb-3">
-            <label class="form-label">Cancellation Freeze</label>
-            <select class="form-select">
-                <option>None</option>
-                <option>2 hr before</option><option>4 hr before</option><option>6 hr before</option>
-                <option>8 hr before</option><option>12 hr before</option><option>24 hr before</option>
-            </select>
+            <label asp-for="CancellationFreeze" class="form-label"></label>
+            <select asp-for="CancellationFreeze" asp-items="Html.GetEnumSelectList<CancellationFreeze>()" class="form-select"></select>
+            <span asp-validation-for="CancellationFreeze" class="text-danger"></span>
         </div>
         <div class="mb-3">
-            <label class="form-label">Repeat</label>
-            <select class="form-select">
-                <option>None</option>
-                <option>Repeat for 1 week</option>
-                <option>Repeat for 2 weeks</option>
-                <option>Repeat for 3 weeks</option>
-                <option>Repeat for 4 weeks</option>
-            </select>
+            <label asp-for="Repeat" class="form-label"></label>
+            <select asp-for="Repeat" asp-items="Html.GetEnumSelectList<Repeat>()" class="form-select"></select>
+            <span asp-validation-for="Repeat" class="text-danger"></span>
         </div>
         <div class="mb-3">
-            <label class="form-label">Host Role</label>
-            <select class="form-select">
-                <option>Host & Play</option>
-                <option>Host Only</option>
-            </select>
+            <label asp-for="HostRole" class="form-label"></label>
+            <select asp-for="HostRole" asp-items="Html.GetEnumSelectList<HostRole>()" class="form-select"></select>
+            <span asp-validation-for="HostRole" class="text-danger"></span>
         </div>
 
-        <!-- Game Info -->
-        <div class="mb-3">
-            <label class="form-label">Game Name</label>
-            <input type="text" maxlength="100" class="form-control"/>
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Game Description</label>
-            <textarea class="form-control"></textarea>
-        </div>
-
-        <button class="btn btn-success">Create</button>
+        <button type="submit" class="btn btn-success">Create</button>
     </form>
 </div>
 
 @section Scripts {
-<script>
-function toggleFeeInput(){
-    const feeSelect = document.getElementById("feeSelect");
-    const feeInput = document.getElementById("feeInput");
-    if(feeSelect.value === "Auto Split Total" || feeSelect.value === "Per Person"){
-        feeInput.style.display = "block";
-    } else {
-        feeInput.style.display = "none";
-    }
-}
-</script>
+    <partial name="_ValidationScriptsPartial" />
 
-<script>
-    function confirmExit() {
-        if (confirm("Are you sure you want to exit? No draft will be saved...")) {
-            window.location.href = '@Url.Action("Index","Community")';
+    <script>
+        // Your existing script is great. It just needs to be called
+        // on page load as well, in case the user gets a validation
+        // error and the page reloads with "Per Person" already selected.
+        
+        function toggleFeeInput() {
+            const feeSelect = document.getElementById("feeSelect");
+            const feeInput = document.getElementById("feeInput");
+            
+            // Get the *text* of the selected option
+            const selectedText = feeSelect.options[feeSelect.selectedIndex].text;
+
+            if (selectedText === "Auto Split Total" || selectedText === "Per Person") {
+                feeInput.style.display = "block";
+            } else {
+                feeInput.style.display = "none";
+            }
         }
-    }
-</script>
+
+        // Run on page load
+        document.addEventListener("DOMContentLoaded", function() {
+            toggleFeeInput();
+        });
+    </script>
+
+    <script>
+        // This script is unchanged and fine.
+        function confirmExit() {
+            if (confirm("Are you sure you want to exit? No draft will be saved...")) {
+                window.location.href = '@Url.Action("Index", "Community")';
+            }
+        }
+    </script>
 }

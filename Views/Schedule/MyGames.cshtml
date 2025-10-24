@@ -1,46 +1,55 @@
 @model IEnumerable<FYP_QS_CODE.Models.Schedule>
+@using FYP_QS_CODE.Models
 @{
-   ViewData["Title"] = "My Games";
-   var today = DateTime.Today;     
-
+    ViewData["Title"] = "My Games";
+    var today = DateTime.Today;
+    
     // Ensure Model is never null
-       var list = Model ?? Enumerable.Empty<FYP_QS_CODE.Models.Schedule>();
+    var list = Model ?? Enumerable.Empty<FYP_QS_CODE.Models.Schedule>();
 
-    // Active = participate && not cancelled && not quit && not ended
-    var activeGames = list.Where(g => !g.IsCancelled && !g.IsQuit && !g.IsEnded);
+    // --- REFACTORED QUERIES using the new Status enum ---
 
-    // Past = participate && host has ended
-    var pastGames = list.Where(g => g.IsEnded && !g.IsCancelled && !g.IsQuit);
+    // Active = 'Active' or 'Null' status
+    var activeGames = list.Where(g => g.Status == ScheduleStatus.Active || g.Status == ScheduleStatus.Null);
+    
+    // Past = 'Past' status
+    var pastGames = list.Where(g => g.Status == ScheduleStatus.Past);
+    
+    // Hidden = 'Cancelled' or 'Quit' status
+    var hiddenGames = list.Where(g => g.Status == ScheduleStatus.Cancelled || g.Status == ScheduleStatus.Quit);
+    
+    // 'Bookmarked' has been removed as it's not in the new model.
 
-    // Hidden = participate && either cancelled or quit
-    var hiddenGames = list.Where(g => g.IsCancelled || g.IsQuit);
-
-    // Bookmark = user bookmarked (participation not required)
-    var bookmarkedGames = list.Where(g => g.IsBookmarked);
-
+    // --- REFACTORED StatusBadge function ---
     string StatusBadge(FYP_QS_CODE.Models.Schedule g)
     {
-        if (g.IsCancelled) return "<span class='badge bg-danger'>Cancelled</span>";
-        if (g.IsQuit) return "<span class='badge bg-danger'>Quit</span>";
-        if (g.StartTime.Date < today) return "<span class='badge bg-warning text-dark'>Past</span>";
-        return "<span class='badge bg-success'>Active</span>";
+        switch (g.Status)
+        {
+            case ScheduleStatus.Cancelled:
+                return "<span class='badge bg-danger'>Cancelled</span>";
+            case ScheduleStatus.Quit:
+                return "<span class='badge bg-danger'>Quit</span>";
+            case ScheduleStatus.Past:
+                return "<span class='badge bg-warning text-dark'>Past</span>";
+            case ScheduleStatus.Active:
+            case ScheduleStatus.Null:
+            default:
+                return "<span class='badge bg-success'>Active</span>";
+        }
     }
 }
 
 <div class="container mt-4">
     <h2 class="mb-4">My Games</h2>
 
-    <!-- Tabs -->
     <ul class="nav nav-tabs" id="gameTabs" role="tablist">
         <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#active" role="tab">Active</a></li>
         <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#past" role="tab">History</a></li>
         <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#hidden" role="tab">Hidden</a></li>
-        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#bookmarked" role="tab">Bookmarked</a></li>
     </ul>
 
     <div class="tab-content mt-3">
 
-        <!-- Active Games -->
         <div class="tab-pane fade show active" id="active" role="tabpanel">
             @if (!activeGames.Any())
             {
@@ -48,23 +57,21 @@
             }
             else
             {
-                foreach (var g in activeGames)
+                @foreach (var g in activeGames)
                 {
                     <div class="card mb-3 shadow-sm game-card"
-                         onclick="location.href='@Url.Action("Details", "Schedule", new { id = g.Id })'"
+                         onclick="location.href='@Url.Action("Details", "Schedule", new { id = g.ScheduleId })'"
                          style="cursor:pointer;">
                         <div class="card-body d-flex align-items-center">
-                            <img src="@g.CommunityIconUrl" alt="community" class="rounded-circle me-3" width="50" height="50" />
                             <div class="flex-grow-1">
                                 <h5 class="card-title mb-1">
-                                    @g.Title 
+                                    @g.GameName
                                     @Html.Raw(StatusBadge(g))
-                                    @if (g.IsBookmarked) { <i class="bi bi-bookmark-fill text-primary ms-2"></i> }
-                                </h5>
+                                    </h5>
                                 <p class="mb-0"><strong>Location:</strong> @g.Location</p>
                                 <p class="mb-0 text-muted">
-                                    <span class="badge bg-primary">@g.Tags.FirstOrDefault()</span>
-                                    <span class="ms-2">Confirmed: @g.Participants.Count(p => p.Paid)/@g.ParticipantLimit</span>
+                                    <span class="badge bg-primary">@g.EventTag</span>
+                                    <span class="ms-2">Players: @g.NumPlayer</span>
                                 </p>
                             </div>
                         </div>
@@ -73,136 +80,31 @@
             }
         </div>
 
-        <!-- Past Games -->
-<div class="tab-pane fade" id="past" role="tabpanel">
-    @if (!pastGames.Any())
-    {
-        <p class="text-muted">No past games.</p>
-    }
-    else
-    {
-        foreach (var g in pastGames)
-        {
-            <div class="card mb-3 shadow-sm game-card">
-                <div class="card-body d-flex align-items-center">
-                    <img src="@g.CommunityIconUrl" alt="community" class="rounded-circle me-3" width="50" height="50" />
-                    <div class="flex-grow-1">
-                        <h5 class="card-title mb-1">@g.Title @Html.Raw(StatusBadge(g))</h5>
-                        <p class="mb-0"><strong>Location:</strong> @g.Location</p>
-                        <p class="mb-0 text-muted">
-                            <span class="badge bg-primary">@g.Tags.FirstOrDefault()</span>
-                            <span class="ms-2">Confirmed: @g.Participants.Count(p => p.Paid)/@g.ParticipantLimit</span>
-                        </p>
+        <div class="tab-pane fade" id="past" role="tabpanel">
+            @if (!pastGames.Any())
+            {
+                <p class="text-muted">No past games.</p>
+            }
+            else
+            {
+                @foreach (var g in pastGames)
+                {
+                    <div class="card mb-3 shadow-sm game-card">
+                        <div class="card-body d-flex align-items-center">
+                            <div class="flex-grow-1">
+                                <h5 class="card-title mb-1">@g.GameName @Html.Raw(StatusBadge(g))</h5>
+                                <p class="mb-0"><strong>Location:</strong> @g.Location</p>
+                                <p class="mb-0 text-muted">
+                                    <span class="badge bg-primary">@g.EventTag</span>
+                                    <span class="ms-2">Players: @g.NumPlayer</span>
+                                </p>
+                            </div>
+                            </div>
                     </div>
-                    <div>
-                        @if (g.Endorsements == null || !g.Endorsements.Any())
-                        {
-                            <button class="btn btn-sm btn-outline-success"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#endorseModal-@g.Id">
-                                Endorse Players
-                            </button>
-                        }
-                        else
-                        {
-                            <button class="btn btn-sm btn-outline-info"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#viewEndorseModal-@g.Id">
-                                See Endorsements
-                            </button>
-                        }
-                    </div>
-                </div>
-            </div>
+                }
+            }
+        </div>
 
-            <!-- Endorse Modal -->
-            <div class="modal fade" id="endorseModal-@g.Id" tabindex="-1">
-                <div class="modal-dialog modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Endorse Players - @g.Title</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <form>
-                                @foreach (var p in g.Participants)
-                                {
-                                    <div class="mb-3 border rounded p-2">
-                                        <strong>@p.DisplayName</strong>
-                                        <div class="row mt-2">
-                                            <div class="col-md-6">
-                                                <label>Skill Endorsement</label>
-                                                <select class="form-select">
-                                                    <option>Dink</option>
-                                                    <option>Overhead</option>
-                                                    <option>Volley</option>
-                                                    <option>Driving</option>
-                                                    <option>Drop Reset</option>
-                                                    <option>Lobbing</option>
-                                                    <option>Defense</option>
-                                                    <option>Serving</option>
-                                                    <option>Returning</option>
-                                                    <option>Poaching</option>
-                                                    <option>Erne</option>
-                                                    <option>ATP</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <label>Personality Endorsement</label>
-                                                <select class="form-select">
-                                                    <option>Sportmanship</option>
-                                                    <option>Heart</option>
-                                                    <option>Mentoring</option>
-                                                    <option>Leadership</option>
-                                                    <option>Friendly</option>
-                                                    <option>Focused</option>
-                                                    <option>Smart</option>
-                                                    <option>Helpful</option>
-                                                    <option>Competitive</option>
-                                                    <option>Funny</option>
-                                                    <option>Enthusiastic</option>
-                                                    <option>Organized</option>
-                                                    <option>Fair</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                }
-                            </form>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="button" class="btn btn-success">Submit Endorsements</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- View Endorsements Modal -->
-            <div class="modal fade" id="viewEndorseModal-@g.Id" tabindex="-1">
-                <div class="modal-dialog modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Endorsements - @g.Title</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            @foreach (var p in g.Participants)
-                            {
-                                <div class="mb-2">
-                                    <strong>@p.DisplayName</strong>  
-                                    <div class="text-muted">Skill: Volley | Personality: Friendly</div>
-                                </div>
-                            }
-                        </div>
-                    </div>
-                </div>
-            </div>
-        }
-    }
-</div>
-
-        <!-- Hidden Games -->
         <div class="tab-pane fade" id="hidden" role="tabpanel">
             @if (!hiddenGames.Any())
             {
@@ -210,17 +112,16 @@
             }
             else
             {
-                foreach (var g in hiddenGames)
+                @foreach (var g in hiddenGames)
                 {
                     <div class="card mb-3 shadow-sm game-card">
                         <div class="card-body d-flex align-items-center">
-                            <img src="@g.CommunityIconUrl" alt="community" class="rounded-circle me-3" width="50" height="50" />
                             <div class="flex-grow-1">
-                                <h5 class="card-title mb-1">@g.Title @Html.Raw(StatusBadge(g))</h5>
+                                <h5 class="card-title mb-1">@g.GameName @Html.Raw(StatusBadge(g))</h5>
                                 <p class="mb-0"><strong>Location:</strong> @g.Location</p>
                                 <p class="mb-0 text-muted">
-                                    <span class="badge bg-primary">@g.Tags.FirstOrDefault()</span>
-                                    <span class="ms-2">Confirmed: @g.Participants.Count(p => p.Paid)/@g.ParticipantLimit</span>
+                                    <span class="badge bg-primary">@g.EventTag</span>
+                                    <span class="ms-2">Players: @g.NumPlayer</span>
                                 </p>
                             </div>
                         </div>
@@ -229,34 +130,7 @@
             }
         </div>
 
-        <!-- Bookmarked Games -->
-        <div class="tab-pane fade" id="bookmarked" role="tabpanel">
-            @if (!bookmarkedGames.Any())
-            {
-                <p class="text-muted">No bookmarked games.</p>
-            }
-            else
-            {
-                foreach (var g in bookmarkedGames)
-                {
-                    <div class="card mb-3 shadow-sm game-card">
-                        <div class="card-body d-flex align-items-center">
-                            <img src="@g.CommunityIconUrl" alt="community" class="rounded-circle me-3" width="50" height="50" />
-                            <div class="flex-grow-1">
-                                <h5 class="card-title mb-1">@g.Title <i class="bi bi-bookmark-fill text-primary ms-2"></i></h5>
-                                <p class="mb-0"><strong>Location:</strong> @g.Location</p>
-                                <p class="mb-0 text-muted">
-                                    <span class="badge bg-primary">@g.Tags.FirstOrDefault()</span>
-                                    <span class="ms-2">Confirmed: @g.Participants.Count(p => p.Paid)/@g.ParticipantLimit</span>
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                }
-            }
         </div>
-
-    </div>
 </div>
 
 <style>

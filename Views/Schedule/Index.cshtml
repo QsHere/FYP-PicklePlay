@@ -2,9 +2,15 @@
 @{
     ViewData["Title"] = "Game Schedule";
     var today = DateTime.Today;
-    var games = Model.Where(s => s.GameType == FYP_QS_CODE.Models.GameType.Social && s.StartTime.Date >= today)
+
+    // Filter by StartTime.HasValue and use new ScheduleType enum
+    var games = Model.Where(s => s.ScheduleType == FYP_QS_CODE.Models.ScheduleType.OneOff && 
+                                 s.StartTime.HasValue && 
+                                 s.StartTime.Value.Date >= today)
                      .OrderBy(s => s.StartTime);
-    var groupedGames = Model.GroupBy(g => g.StartTime.Date).OrderBy(g => g.Key);
+    
+    // Group by StartTime.Value
+    var groupedGames = games.GroupBy(g => g.StartTime.Value.Date).OrderBy(g => g.Key);
 }
 <div class="container mt-4 page-wrapper">
     <h2 class="mb-4">Games Schedule</h2>
@@ -17,18 +23,20 @@
 
         @foreach (var game in dayGroup.OrderBy(g => g.StartTime))
         {
-            <h6 class="text-muted mt-3">@game.StartTime.ToString("hh:mm tt")</h6>
+            <h6 class="text-muted mt-3">@(game.StartTime.HasValue ? game.StartTime.Value.ToString("hh:mm tt") : "No time set")</h6>
+            
             <div class="card mb-3 shadow-sm game-card"
-                 onclick="location.href='@Url.Action("Details", "Schedule", new { id = game.Id })'"
+                 onclick="location.href='@Url.Action("Details", "Schedule", new { id = game.ScheduleId })'"
                  style="cursor:pointer;">
                 <div class="card-body d-flex align-items-center">
-                    <img src="@game.CommunityIconUrl" alt="community" class="rounded-circle me-3" width="50" height="50" />
                     <div>
-                        <h5 class="card-title mb-1">@game.Title</h5>
+                        <h5 class="card-title mb-1">@game.GameName</h5>
                         <p class="mb-0"><strong>Location:</strong> @game.Location</p>
                         <p class="mb-0 text-muted">
-                            <span class="badge bg-primary">@game.Tags.FirstOrDefault()</span>
-                            <span class="ms-2">Confirmed: @game.Participants.Count(p => p.Paid)/@game.ParticipantLimit</span>
+                            
+                            <span class="badge bg-primary">@game.EventTag</span>
+                            
+                            <span class_comment="ms-2">Players: @game.NumPlayer</span>
                         </p>
                     </div>
                 </div>
