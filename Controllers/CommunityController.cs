@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using FYP_QS_CODE.Data;
 using FYP_QS_CODE.Models;
-using System; // Add this
+using System; 
 
 namespace FYP_QS_CODE.Controllers
 {
@@ -20,40 +20,97 @@ namespace FYP_QS_CODE.Controllers
             return View(games);
         }
 
-        // Recurring Schedule Form
-        public IActionResult CreateRecurring()
-        {
-            return View();
-        }
-
-        // --- CREATE ONE-OFF ---
+        // --- CREATE RECURRING ---
         // GET Action: Shows the form
         [HttpGet]
-        public IActionResult CreateOneOff()
+        public IActionResult CreateRecurring()
         {
-            // Pass a new, empty view model to the view
-            return View(new ScheduleCreateViewModel());
+            // Pass a new, empty recurring view model
+            return View(new ScheduleRecurringViewModel());
         }
 
         // POST Action: Handles the form submission
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult CreateRecurring(ScheduleRecurringViewModel vm)
+        {
+            if (!ModelState.IsValid)
+            {
+                // If validation fails, return to the view with errors
+                return View(vm);
+            }
+
+            // --- NEW LOGIC FOR MULTI-SELECT ---
+            // Combine the list of enum days into a single [Flags] enum value
+            RecurringWeek combinedWeek = RecurringWeek.None;
+            if (vm.RecurringWeek != null && vm.RecurringWeek.Count > 0)
+            {
+                foreach (var day in vm.RecurringWeek)
+                {
+                    combinedWeek |= day; // Bitwise OR operator (e.g., Mon | Wed = 1 | 4 = 5)
+                }
+            }
+            // --- END NEW LOGIC ---
+
+            // 1. Map ViewModel to Schedule Model
+            var newSchedule = new Schedule
+            {
+                // This is a Recurring schedule
+                ScheduleType = Models.ScheduleType.Recurring, 
+                
+                // Map recurring-specific fields
+                RecurringWeek = combinedWeek, // Assign the combined value
+                AutoCreateWhen = vm.AutoCreateWhen,
+                // Combine 'Today' with the Time from the form to create a valid DateTime
+                StartTime = DateTime.Today.Add(vm.StartTime.ToTimeSpan()), 
+                
+                // Map all other common fields
+                GameName = vm.GameName,
+                Description = vm.Description,
+                EventTag = vm.EventTag,
+                Location = vm.Location,
+                Duration = vm.Duration,
+                NumPlayer = vm.NumPlayer,
+                MinRankRestriction = vm.MinRankRestriction,
+                MaxRankRestriction = vm.MaxRankRestriction,
+                GenderRestriction = vm.GenderRestriction,
+                AgeGroupRestriction = vm.AgeGroupRestriction,
+                FeeType = vm.FeeType,
+                FeeAmount = (vm.FeeType == FeeType.AutoSplitTotal || vm.FeeType == FeeType.PerPerson) ? vm.FeeAmount : null,
+                Privacy = vm.Privacy,
+                GameFeature = vm.GameFeature,
+                CancellationFreeze = vm.CancellationFreeze,
+                HostRole = vm.HostRole
+                // 'Repeat' is intentionally null, as this is not a one-off
+            };
+
+            // 2. Add to database
+            _scheduleRepository.Add(newSchedule);
+
+            // 3. Redirect to the main page
+            return RedirectToAction("Index", "Community");
+        }
+        // ------------------------
+
+        // --- CREATE ONE-OFF --- (This is unchanged)
+        [HttpGet]
+        public IActionResult CreateOneOff()
+        {
+            return View(new ScheduleCreateViewModel());
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult CreateOneOff(ScheduleCreateViewModel vm)
         {
             if (!ModelState.IsValid)
             {
-                // If validation fails (e.g., required field missing),
-                // return to the view with the user's data to show errors.
                 return View(vm);
             }
 
-            // 1. Map ViewModel (from form) to Schedule (for database)
             var newSchedule = new Schedule
             {
-                // This is a One-Off schedule
                 ScheduleType = Models.ScheduleType.OneOff, 
-                
-                // Map all other fields from the view model
                 GameName = vm.GameName,
                 Description = vm.Description,
                 EventTag = vm.EventTag,
@@ -66,7 +123,6 @@ namespace FYP_QS_CODE.Controllers
                 GenderRestriction = vm.GenderRestriction,
                 AgeGroupRestriction = vm.AgeGroupRestriction,
                 FeeType = vm.FeeType,
-                // Only set FeeAmount if the type is not None or Free
                 FeeAmount = (vm.FeeType == FeeType.AutoSplitTotal || vm.FeeType == FeeType.PerPerson) ? vm.FeeAmount : null,
                 Privacy = vm.Privacy,
                 GameFeature = vm.GameFeature,
@@ -75,11 +131,7 @@ namespace FYP_QS_CODE.Controllers
                 HostRole = vm.HostRole
             };
 
-            // 2. Add to database via the repository
             _scheduleRepository.Add(newSchedule);
-
-            // 3. Redirect to a success page (e.g., the main community page)
-            // You can change this to redirect to a "Details" page later
             return RedirectToAction("Index", "Community");
         }
         // ------------------------

@@ -28,13 +28,13 @@
       <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\FYP_QS_CODE.at7htwhcgj.bundle.scp.css'))</AssetFile>
       <Selectors><![CDATA[[]]]></Selectors>
       <EndpointProperties><![CDATA[[{"Name":"fingerprint","Value":"at7htwhcgj"},{"Name":"integrity","Value":"sha256-zg7PRtKcOW8OY7\u002BrC4WaSAYPwW/6ncdgzETJKYQPo/M="},{"Name":"label","Value":"_content/FYP_QS_CODE/FYP_QS_CODE.bundle.scp.css"}]]]></EndpointProperties>
-      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=31536000, immutable"},{"Name":"Content-Length","Value":"1129"},{"Name":"Content-Type","Value":"text/css"},{"Name":"ETag","Value":"\u0022zg7PRtKcOW8OY7\u002BrC4WaSAYPwW/6ncdgzETJKYQPo/M=\u0022"},{"Name":"Last-Modified","Value":"Fri, 24 Oct 2025 16:05:55 GMT"}]]]></ResponseHeaders>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=31536000, immutable"},{"Name":"Content-Length","Value":"1129"},{"Name":"Content-Type","Value":"text/css"},{"Name":"ETag","Value":"\u0022zg7PRtKcOW8OY7\u002BrC4WaSAYPwW/6ncdgzETJKYQPo/M=\u0022"},{"Name":"Last-Modified","Value":"Fri, 24 Oct 2025 18:12:47 GMT"}]]]></ResponseHeaders>
     </StaticWebAssetEndpoint>
     <StaticWebAssetEndpoint Include="_content/FYP_QS_CODE/FYP_QS_CODE.bundle.scp.css">
       <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\FYP_QS_CODE.at7htwhcgj.bundle.scp.css'))</AssetFile>
       <Selectors><![CDATA[[]]]></Selectors>
       <EndpointProperties><![CDATA[[{"Name":"integrity","Value":"sha256-zg7PRtKcOW8OY7\u002BrC4WaSAYPwW/6ncdgzETJKYQPo/M="}]]]></EndpointProperties>
-      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"no-cache"},{"Name":"Content-Length","Value":"1129"},{"Name":"Content-Type","Value":"text/css"},{"Name":"ETag","Value":"\u0022zg7PRtKcOW8OY7\u002BrC4WaSAYPwW/6ncdgzETJKYQPo/M=\u0022"},{"Name":"Last-Modified","Value":"Fri, 24 Oct 2025 16:05:55 GMT"}]]]></ResponseHeaders>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"no-cache"},{"Name":"Content-Length","Value":"1129"},{"Name":"Content-Type","Value":"text/css"},{"Name":"ETag","Value":"\u0022zg7PRtKcOW8OY7\u002BrC4WaSAYPwW/6ncdgzETJKYQPo/M=\u0022"},{"Name":"Last-Modified","Value":"Fri, 24 Oct 2025 18:12:47 GMT"}]]]></ResponseHeaders>
     </StaticWebAssetEndpoint>
     <StaticWebAssetEndpoint Include="_content/FYP_QS_CODE/img/avatarQS.hlknb4rply.jpg">
       <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\img\avatarQS.jpg'))</AssetFile>

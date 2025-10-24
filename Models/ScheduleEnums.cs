@@ -7,111 +7,139 @@ namespace FYP_QS_CODE.Models
     
     public enum ScheduleType
     {
-        OneOff,
-        Recurring,
-        Competition
+        OneOff = 0,
+        Recurring = 1,
+        Competition = 2
     }
 
     public enum EventTag
     {
-        None,
+        None = 0,
         [Display(Name = "Beginner-Friendly")]
-        BeginnerFriendly,
-        Competitive,
+        BeginnerFriendly = 1,
+        Competitive = 2,
         [Display(Name = "Single-Game")]
-        SingleGame,
-        Training
+        SingleGame = 3,
+        Training = 4
     }
 
     public enum Duration
     {
-        [Display(Name = "0.5 hr")] [EnumMember(Value = "0.5h")] H0_5,
-        [Display(Name = "1 hr")] [EnumMember(Value = "1h")] H1,
-        [Display(Name = "1.5 hr")] [EnumMember(Value = "1.5h")] H1_5,
-        [Display(Name = "2 hr")] [EnumMember(Value = "2h")] H2,
-        [Display(Name = "2.5 hr")] [EnumMember(Value = "2.5h")] H2_5,
-        [Display(Name = "3 hr")] [EnumMember(Value = "3h")] H3,
-        [Display(Name = "3.5 hr")] [EnumMember(Value = "3.5h")] H3_5,
-        [Display(Name = "4 hr")] [EnumMember(Value = "4h")] H4,
-        [Display(Name = "5 hr")] [EnumMember(Value = "5h")] H5,
-        [Display(Name = "6 hr")] [EnumMember(Value = "6h")] H6,
-        [Display(Name = "7 hr")] [EnumMember(Value = "7h")] H7,
-        [Display(Name = "8 hr")] [EnumMember(Value = "8h")] H8,
-        [Display(Name = "1 day")] [EnumMember(Value = "1d")] D1,
-        [Display(Name = "2 days")] [EnumMember(Value = "2d")] D2,
-        [Display(Name = "3 days")] [EnumMember(Value = "3d")] D3
+        [Display(Name = "0.5 hr")] H0_5 = 0,
+        [Display(Name = "1 hr")] H1 = 1,
+        [Display(Name = "1.5 hr")] H1_5 = 2,
+        [Display(Name = "2 hr")] H2 = 3,
+        [Display(Name = "2.5 hr")] H2_5 = 4,
+        [Display(Name = "3 hr")] H3 = 5,
+        [Display(Name = "3.5 hr")] H3_5 = 6,
+        [Display(Name = "4 hr")] H4 = 7,
+        [Display(Name = "5 hr")] H5 = 8,
+        [Display(Name = "6 hr")] H6 = 9,
+        [Display(Name = "7 hr")] H7 = 10,
+        [Display(Name = "8 hr")] H8 = 11,
+        [Display(Name = "1 day")] D1 = 12,
+        [Display(Name = "2 days")] D2 = 13,
+        [Display(Name = "3 days")] D3 = 14
     }
 
     public enum GenderRestriction
     {
-        None,
-        Male,
-        Female
+        None = 0,
+        Male = 1,
+        Female = 2
     }
 
     public enum AgeGroupRestriction
     {
-        Junior, // (Under 18)
-        Adult,  // (18-55)
-        Senior  // (Above 55)
+        Junior = 0, // (Under 18)
+        Adult = 1,  // (18-55)
+        Senior = 2  // (Above 55)
     }
 
     public enum FeeType
     {
-        None,
-        Free,
+        None = 0,
+        Free = 1,
         [Display(Name = "Auto Split Total")]
-        AutoSplitTotal,
+        AutoSplitTotal = 2,
         [Display(Name = "Per Person")]
-        PerPerson
+        PerPerson = 3
     }
 
     public enum Privacy
     {
-        Public,
-        Private
+        Public = 0,
+        Private = 1
     }
 
     public enum GameFeature
     {
-        Basic,
-        Ranking
+        Basic = 0,
+        Ranking = 1
     }
 
     public enum CancellationFreeze
     {
-        None,
-        [Display(Name = "2 hr before")] [EnumMember(Value = "2hr before")] B2hr,
-        [Display(Name = "4 hr before")] [EnumMember(Value = "4hr before")] B4hr,
-        [Display(Name = "6 hr before")] [EnumMember(Value = "6hr before")] B6hr,
-        [Display(Name = "8 hr before")] [EnumMember(Value = "8hr before")] B8hr,
-        [Display(Name = "12 hr before")] [EnumMember(Value = "12hr before")] B12hr,
-        [Display(Name = "24 hr before")] [EnumMember(Value = "24hr before")] B24hr
+        None = 0,
+        [Display(Name = "2 hr before")] B2hr = 1,
+        [Display(Name = "4 hr before")] B4hr = 2,
+        [Display(Name = "6 hr before")] B6hr = 3,
+        [Display(Name = "8 hr before")] B8hr = 4,
+        [Display(Name = "12 hr before")] B12hr = 5,
+        [Display(Name = "24 hr before")] B24hr = 6
     }
 
     public enum Repeat
     {
-        None,
-        [Display(Name = "Repeat for 1 week")] [EnumMember(Value = "Repeat for 1 week")] W1,
-        [Display(Name = "Repeat for 2 weeks")] [EnumMember(Value = "Repeat for 2 week")] W2, // Note: DB schema has typo "2 week"
-        [Display(Name = "Repeat for 3 weeks")] [EnumMember(Value = "Repeat for 3 week")] W3, // Note: DB schema has typo "3 week"
-        [Display(Name = "Repeat for 4 weeks")] [EnumMember(Value = "Repeat for 4 week")] W4  // Note: DB schema has typo "4 week"
+        None = 0,
+        [Display(Name = "Repeat for 1 week")] W1 = 1,
+        [Display(Name = "Repeat for 2 weeks")] W2 = 2,
+        [Display(Name = "Repeat for 3 weeks")] W3 = 3,
+        [Display(Name = "Repeat for 4 weeks")] W4 = 4
     }
+
+    // --- NEW ENUMS ADDED FROM YOUR SQL ---
+    [Flags]
+    public enum RecurringWeek
+    {
+        // Must be powers of 2 for bitwise flags
+        None = 0,
+        Mon = 1,
+        Tue = 2,
+        Wed = 4,
+        Thur = 8,
+        Fri = 16,
+        Sat = 32,
+        Sun = 64
+    }
+
+    public enum AutoCreateWhen
+    {
+        [Display(Name = "24hr before")] B24hr = 0,
+        [Display(Name = "2d before")] B2d = 1,
+        [Display(Name = "3d before")] B3d = 2,
+        [Display(Name = "4d before")] B4d = 3,
+        [Display(Name = "5d before")] B5d = 4,
+        [Display(Name = "6d before")] B6d = 5,
+        [Display(Name = "1w before")] B1w = 6,
+        [Display(Name = "2w before")] B2w = 7
+    }
+    // --- END NEW ENUMS ---
 
     public enum HostRole
     {
         [Display(Name = "Host & Play")]
-        HostAndPlay,
+        HostAndPlay = 0,
         [Display(Name = "Host Only")]
-        HostOnly
+        HostOnly = 1
     }
 
     public enum ScheduleStatus
     {
-        Null,
-        Active,
-        Past,
-        Quit,
-        Cancelled
+        Null = 0,
+        Active = 1,
+        Past = 2,
+        Quit = 3,
+        Cancelled = 4
     }
 }

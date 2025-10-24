@@ -16,46 +16,9 @@ namespace FYP_QS_CODE.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Configure enum conversions to strings for MySQL
-            modelBuilder.Entity<Schedule>()
-                .Property(s => s.ScheduleType)
-                .HasConversion<string>();
-                
-            modelBuilder.Entity<Schedule>()
-                .Property(s => s.EventTag)
-                .HasConversion<string>();
-
-            
-
-            modelBuilder.Entity<Schedule>()
-                .Property(s => s.GenderRestriction)
-                .HasConversion<string>();
-            
-            modelBuilder.Entity<Schedule>()
-                .Property(s => s.AgeGroupRestriction)
-                .HasConversion<string>();
-
-            modelBuilder.Entity<Schedule>()
-                .Property(s => s.FeeType)
-                .HasConversion<string>();
-
-            modelBuilder.Entity<Schedule>()
-                .Property(s => s.Privacy)
-                .HasConversion<string>();
-
-            modelBuilder.Entity<Schedule>()
-                .Property(s => s.GameFeature)
-                .HasConversion<string>();
-
-        
-
-            modelBuilder.Entity<Schedule>()
-                .Property(s => s.HostRole)
-                .HasConversion<string>();
-                
-                modelBuilder.Entity<Schedule>()
-                .Property(s => s.Status)
-                .HasConversion<string>();
+            // All .HasConversion<string>() calls have been removed.
+            // EF Core will now correctly save the enums as integers (TINYINT)
+            // by default.
         }
     }
 }
