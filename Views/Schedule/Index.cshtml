@@ -34,7 +34,10 @@
                         <p class="mb-0"><strong>Location:</strong> @game.Location</p>
                         <p class="mb-0 text-muted">
                             
-                            <span class="badge bg-primary">@game.EventTag</span>
+                            @if(game.EventTag.HasValue && game.EventTag != EventTag.None) 
+                    {
+                        <span class="badge bg-primary fs-6">@game.EventTag.ToString()</span>
+                    }
                             
                             <span class_comment="ms-2">Players: @game.NumPlayer</span>
                         </p>

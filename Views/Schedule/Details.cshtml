@@ -1,5 +1,5 @@
 @model Schedule
-@using FYP_QS_CODE.Models
+@using FYP_QS_CODE.Models 
 @{
     ViewData["Title"] = Model.GameName ?? "Game Details";
 }
@@ -10,7 +10,8 @@
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <div class="d-flex align-items-center">
                     <h2 class="mb-0 me-3">@Model.GameName</h2>
-                    @if(Model.EventTag.HasValue && Model.EventTag != EventTag.None)
+                    @* --- CHANGE 1: Conditional Event Tag --- *@
+                    @if(Model.EventTag.HasValue && Model.EventTag != EventTag.None) 
                     {
                         <span class="badge bg-primary fs-6">@Model.EventTag.ToString()</span>
                     }
@@ -58,7 +59,8 @@
 
              <hr />
             
-             <p><strong>Game Type:</strong> @Model.GameFeature.ToString()</p>
+             @* --- CHANGE 2: Removed Game Type --- *@
+             @* <p><strong>Game Type:</strong> @Model.GameFeature.ToString()</p> *@
             
         </div>
 
@@ -74,18 +76,16 @@
                         {
                             if (Model.ScheduleType == ScheduleType.Recurring)
                             {
-                                // Show day(s) for recurring
                                 <span>Every @Model.RecurringWeek.ToString()</span><br/>
                                 <small>@Model.StartTime.Value.ToString("t") - @Model.EndTime.Value.ToString("t")</small>
                             }
                             else
                             {
-                                // Show full date and time range for one-off
                                 <span>@Model.StartTime.Value.ToString("MMM d, yyyy")</span><br/>
                                 <small>@Model.StartTime.Value.ToString("t") - @Model.EndTime.Value.ToString("t")</small> 
                             }
                         }
-                        else if (Model.StartTime.HasValue) // Fallback if EndTime wasn't calculated/saved
+                        else if (Model.StartTime.HasValue)
                         {
                              <span>@Model.StartTime.Value.ToString("MMM d, yyyy, h:mm tt")</span>
                         }
@@ -96,7 +96,6 @@
                         <strong>Duration:</strong>
                         @if (Model.Duration.HasValue)
                         {
-                            @* Use the helper for friendly format *@
                             <span>@ScheduleHelper.GetFriendlyDuration(Model.Duration.Value)</span> 
                         }
                     </p>
@@ -125,8 +124,6 @@
                              <span>RM @Model.FeeAmount?.ToString("0.00") (Total)</span>
                         }
                     </p>
-                    
-                    @* Removed Cancellation Freeze *@
                     
                     <div class="d-grid gap-2 mt-4">
                         <a href="#" class="btn btn-success btn-lg">Join Game</a>
