@@ -56,14 +56,14 @@ namespace FYP_QS_CODE.Controllers
             var newSchedule = new Schedule
             {
                 // This is a Recurring schedule
-                ScheduleType = Models.ScheduleType.Recurring, 
-                
+                ScheduleType = Models.ScheduleType.Recurring,
+
                 // Map recurring-specific fields
                 RecurringWeek = combinedWeek, // Assign the combined value
                 AutoCreateWhen = vm.AutoCreateWhen,
                 // Combine 'Today' with the Time from the form to create a valid DateTime
-                StartTime = DateTime.Today.Add(vm.StartTime.ToTimeSpan()), 
-                
+                StartTime = DateTime.Today.Add(vm.StartTime.ToTimeSpan()),
+
                 // Map all other common fields
                 GameName = vm.GameName,
                 Description = vm.Description,
@@ -83,6 +83,16 @@ namespace FYP_QS_CODE.Controllers
                 HostRole = vm.HostRole
                 // 'Repeat' is intentionally null, as this is not a one-off
             };
+            
+            // --- CALCULATE END TIME (ADD THIS BLOCK) ---
+            if (newSchedule.StartTime.HasValue && newSchedule.Duration.HasValue)
+            {
+                // Use the new helper to get the TimeSpan
+                var durationTimeSpan = ScheduleDurationHelper.GetTimeSpan(newSchedule.Duration.Value);
+                // Add it to the StartTime to get the EndTime
+                newSchedule.EndTime = newSchedule.StartTime.Value.Add(durationTimeSpan);
+            }
+            // --- END CALCULATION ---
 
             // 2. Add to database
             _scheduleRepository.Add(newSchedule);

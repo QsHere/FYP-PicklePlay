@@ -31,6 +31,9 @@ namespace FYP_QS_CODE.Models
         [Column("startTime")]
         public DateTime? StartTime { get; set; }
 
+        [Column("endTime")]
+        public DateTime? EndTime { get; set; }
+
         [Column("duration")] // Removed TypeName
         public Duration? Duration { get; set; }
 
