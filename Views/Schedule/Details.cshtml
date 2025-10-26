@@ -18,7 +18,25 @@
                 </div>
                 <div>
                     <a href="#" class="text-secondary me-2 fs-4"><i class="bi bi-bookmark"></i></a>
-                    <a href="#" class="text-secondary fs-4"><i class="bi bi-gear"></i></a> 
+
+                    <div class="dropdown d-inline-block">
+                        <a href="#" class="text-secondary fs-4" id="settingsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-gear"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="settingsDropdown">
+                            <li>
+                                <a class="dropdown-item" asp-action="Edit" asp-controller="Schedule" asp-route-id="@Model.ScheduleId">
+                                    <i class="bi bi-pencil-fill me-2"></i> Edit Schedule
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item text-danger" asp-action="Delete" asp-controller="Schedule" asp-route-id="@Model.ScheduleId">
+                                    <i class="bi bi-trash-fill me-2"></i> Delete Schedule
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
 
