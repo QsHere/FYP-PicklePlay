@@ -34,13 +34,19 @@ namespace FYP_QS_CODE.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult CreateRecurring(ScheduleRecurringViewModel vm)
         {
+            // --- Server-side validation for future time ---
+            var selectedDateTime = DateTime.Today.Add(vm.StartTime.ToTimeSpan());
+            if (vm.RecurringWeek.Contains((RecurringWeek)(1 << (int)DateTime.Today.DayOfWeek)) && selectedDateTime <= DateTime.Now)
+            {
+                 ModelState.AddModelError("StartTime", "Please select a future time for today's recurring schedule.");
+            }
+            
             if (!ModelState.IsValid)
             {
                 // If validation fails, return to the view with errors
                 return View(vm);
             }
 
-            // --- NEW LOGIC FOR MULTI-SELECT ---
             // Combine the list of enum days into a single [Flags] enum value
             RecurringWeek combinedWeek = RecurringWeek.None;
             if (vm.RecurringWeek != null && vm.RecurringWeek.Count > 0)
@@ -50,21 +56,14 @@ namespace FYP_QS_CODE.Controllers
                     combinedWeek |= day; // Bitwise OR operator (e.g., Mon | Wed = 1 | 4 = 5)
                 }
             }
-            // --- END NEW LOGIC ---
 
             // 1. Map ViewModel to Schedule Model
             var newSchedule = new Schedule
             {
-                // This is a Recurring schedule
                 ScheduleType = Models.ScheduleType.Recurring,
-
-                // Map recurring-specific fields
-                RecurringWeek = combinedWeek, // Assign the combined value
+                RecurringWeek = combinedWeek, 
                 AutoCreateWhen = vm.AutoCreateWhen,
-                // Combine 'Today' with the Time from the form to create a valid DateTime
                 StartTime = DateTime.Today.Add(vm.StartTime.ToTimeSpan()),
-
-                // Map all other common fields
                 GameName = vm.GameName,
                 Description = vm.Description,
                 EventTag = vm.EventTag,
@@ -81,28 +80,22 @@ namespace FYP_QS_CODE.Controllers
                 GameFeature = vm.GameFeature,
                 CancellationFreeze = vm.CancellationFreeze,
                 HostRole = vm.HostRole
-                // 'Repeat' is intentionally null, as this is not a one-off
             };
             
-            // --- CALCULATE END TIME (ADD THIS BLOCK) ---
+            // --- CALCULATE END TIME (This block was correct) ---
             if (newSchedule.StartTime.HasValue && newSchedule.Duration.HasValue)
             {
-                // Use the new helper to get the TimeSpan
-                var durationTimeSpan = ScheduleDurationHelper.GetTimeSpan(newSchedule.Duration.Value);
-                // Add it to the StartTime to get the EndTime
+                var durationTimeSpan = ScheduleHelper.GetTimeSpan(newSchedule.Duration.Value);
                 newSchedule.EndTime = newSchedule.StartTime.Value.Add(durationTimeSpan);
             }
             // --- END CALCULATION ---
 
-            // 2. Add to database
             _scheduleRepository.Add(newSchedule);
-
-            // 3. Redirect to the main page
             return RedirectToAction("Index", "Community");
         }
         // ------------------------
 
-        // --- CREATE ONE-OFF --- (This is unchanged)
+        // --- CREATE ONE-OFF ---
         [HttpGet]
         public IActionResult CreateOneOff()
         {
@@ -113,6 +106,12 @@ namespace FYP_QS_CODE.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult CreateOneOff(ScheduleCreateViewModel vm)
         {
+            // --- Server-side validation for future time ---
+             if (vm.StartTime <= DateTime.Now)
+            {
+                ModelState.AddModelError("StartTime", "Please select a future date and time.");
+            }
+
             if (!ModelState.IsValid)
             {
                 return View(vm);
@@ -140,6 +139,17 @@ namespace FYP_QS_CODE.Controllers
                 Repeat = vm.Repeat,
                 HostRole = vm.HostRole
             };
+
+            // --- FIX: ADD THIS CALCULATION BLOCK ---
+            // This was missing before.
+            if (newSchedule.StartTime.HasValue && newSchedule.Duration.HasValue)
+            {
+                // Use the new helper to get the TimeSpan
+                var durationTimeSpan = ScheduleHelper.GetTimeSpan(newSchedule.Duration.Value);
+                // Add it to the StartTime to get the EndTime
+                newSchedule.EndTime = newSchedule.StartTime.Value.Add(durationTimeSpan);
+            }
+            // --- END FIX ---
 
             _scheduleRepository.Add(newSchedule);
             return RedirectToAction("Index", "Community");

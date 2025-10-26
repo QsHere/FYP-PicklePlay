@@ -3,7 +3,7 @@ using FYP_QS_CODE.Models; // Make sure to import your enums
 
 namespace FYP_QS_CODE.Models
 {
-    public static class ScheduleDurationHelper
+    public static class ScheduleHelper
     {
         /// <summary>
         /// Converts a Duration enum into a precise TimeSpan for calculations.

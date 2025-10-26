@@ -1,5 +1,5 @@
 @model Schedule
-@using FYP_QS_CODE.Models 
+@using FYP_QS_CODE.Models
 @{
     ViewData["Title"] = Model.GameName ?? "Game Details";
 }
@@ -7,7 +7,20 @@
 <div class="container mt-4">
     <div class="row">
         <div class="col-lg-8">
-            <h2 class="mb-3">@Model.GameName</h2>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex align-items-center">
+                    <h2 class="mb-0 me-3">@Model.GameName</h2>
+                    @if(Model.EventTag.HasValue && Model.EventTag != EventTag.None)
+                    {
+                        <span class="badge bg-primary fs-6">@Model.EventTag.ToString()</span>
+                    }
+                </div>
+                <div>
+                    <a href="#" class="text-secondary me-2 fs-4"><i class="bi bi-bookmark"></i></a>
+                    <a href="#" class="text-secondary fs-4"><i class="bi bi-gear"></i></a> 
+                </div>
+            </div>
+
 
             <div class="mb-4">
                 <h5>About this game</h5>
@@ -43,20 +56,10 @@
                 </div>
             </div>
 
-            <hr />
-
-            <h5 class="mt-4">Game Settings</h5>
-            <div class="row">
-                <div class="col-md-6">
-                    <p><strong>Host Role:</strong> @Model.HostRole.ToString()</p>
-                    <p><strong>Game Type:</strong> @Model.GameFeature.ToString()</p>
-                </div>
-                <div class="col-md-6">
-                    <p><strong>Privacy:</strong> @Model.Privacy.ToString()</p>
-                    <p><strong>Event Tag:</strong> @Model.EventTag.ToString()</p>
-                </div>
-            </div>
-
+             <hr />
+            
+             <p><strong>Game Type:</strong> @Model.GameFeature.ToString()</p>
+            
         </div>
 
         <div class="col-lg-4">
@@ -64,31 +67,37 @@
                 <div class="card-body">
                     <h5 class="card-title">Schedule Details</h5>
                     
-                    @* --- THIS IS THE TIME LOGIC YOU REQUESTED --- *@
                     <p>
-                        <i class="bi bi-calendar-event"></i> <strong>When:</strong>
+                        <i class="bi bi-calendar-event"></i> 
+                        <strong>When:</strong>
                         @if (Model.StartTime.HasValue && Model.EndTime.HasValue)
                         {
                             if (Model.ScheduleType == ScheduleType.Recurring)
                             {
+                                // Show day(s) for recurring
                                 <span>Every @Model.RecurringWeek.ToString()</span><br/>
                                 <small>@Model.StartTime.Value.ToString("t") - @Model.EndTime.Value.ToString("t")</small>
                             }
                             else
                             {
+                                // Show full date and time range for one-off
                                 <span>@Model.StartTime.Value.ToString("MMM d, yyyy")</span><br/>
-                                <small>@Model.StartTime.Value.ToString("t") - @Model.EndTime.Value.ToString("t")</small>
+                                <small>@Model.StartTime.Value.ToString("t") - @Model.EndTime.Value.ToString("t")</small> 
                             }
+                        }
+                        else if (Model.StartTime.HasValue) // Fallback if EndTime wasn't calculated/saved
+                        {
+                             <span>@Model.StartTime.Value.ToString("MMM d, yyyy, h:mm tt")</span>
                         }
                     </p>
 
-                    @* --- THIS IS THE DURATION LOGIC YOU REQUESTED --- *@
                     <p>
                         <i class="bi bi-clock"></i>
                         <strong>Duration:</strong>
                         @if (Model.Duration.HasValue)
                         {
-                            <span>@ScheduleHelper.GetFriendlyDuration(Model.Duration.Value)</span>
+                            @* Use the helper for friendly format *@
+                            <span>@ScheduleHelper.GetFriendlyDuration(Model.Duration.Value)</span> 
                         }
                     </p>
 
@@ -116,13 +125,9 @@
                              <span>RM @Model.FeeAmount?.ToString("0.00") (Total)</span>
                         }
                     </p>
-
-                    <p>
-                        <i class="bi bi-calendar-x"></i>
-                        <strong>Cancellation:</strong>
-                        <span>@Model.CancellationFreeze.ToString()</span>
-                    </p>
-
+                    
+                    @* Removed Cancellation Freeze *@
+                    
                     <div class="d-grid gap-2 mt-4">
                         <a href="#" class="btn btn-success btn-lg">Join Game</a>
                         <a href="#" class="btn btn-outline-secondary">Contact Host</a>
