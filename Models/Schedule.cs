@@ -81,10 +81,24 @@ namespace FYP_QS_CODE.Models
         [Column("hostrole")] // Removed TypeName
         public HostRole? HostRole { get; set; } = Models.HostRole.HostAndPlay;
 
-        // --- Other columns from your table ---
-        // approxStartTime, endTime, num_team skipped as they are not enums
-
         [Column("status")] // Removed TypeName
         public ScheduleStatus? Status { get; set; } = ScheduleStatus.Null;
+
+        [Column("approxStartTime")]
+        public DateTime? ApproxStartTime { get; set; }
+
+        [Column("regOpen")]
+        public DateTime? RegOpen { get; set; }
+
+        [Column("regClose")]
+        public DateTime? RegClose { get; set; }
+
+        [Column("earlyBirdClose")]
+        public DateTime? EarlyBirdClose { get; set; }
+
+        // --- ADD NAVIGATION PROPERTY ---
+        // This will hold the related Competition data if ScheduleType is Competition
+        public virtual Competition? Competition { get; set; }
+        // --- END ADD ---
     }
 }
