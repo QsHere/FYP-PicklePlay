@@ -79,11 +79,7 @@ namespace FYP_QS_CODE.Models
         [Required]
         public CancellationFreeze CancellationFreeze { get; set; } = CancellationFreeze.B24hr;
 
-        // REMOVED: HostRole
+      
 
-        // --- Competition Fields ---
-        [Display(Name = "Competition Format")]
-        [Required]
-        public CompetitionFormat Format { get; set; } = CompetitionFormat.PoolPlay;
     }
 }

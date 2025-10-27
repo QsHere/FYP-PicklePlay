@@ -1,125 +1,184 @@
+@model CompetitionSetupViewModel
+@using FYP_QS_CODE.Models
 @{
-    ViewData["Title"] = "Setup Match Format";
+    ViewData["Title"] = "Setup Competition Matches";
 }
 
-     <!-- Match Format -->
-        <h5 class="mt-3">Setup Match Format</h5>
-        <form> 
-        <select class="form-select mb-3" id="matchFormat" onchange="toggleMatchOptions()">
-            <option>Pool Play</option>
-            <option>Elimination</option>
-            <option>Round Robin</option>
-        </select>
-
-        <!-- Pool Play Options -->
-        <div id="poolOptions">
-            <label>Number of Pools</label>
-            <input type="number" class="form-control mb-2"/>
-            <label>Winners per Pool</label>
-            <input type="number" class="form-control mb-2"/>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="doublePool">
-                <label class="form-check-label">Double Pool (each team plays others twice)</label>
-            </div>
-            <label class="mt-2">Standing Calculation</label>
-            <select class="form-select mb-2">
-                <option>Win-Loss Point</option>
-                <option>Win %</option>
-                <option>Games Win %</option>
-                <option>Games Won</option>
-                <option>Total Scores</option>
-            </select>
-            <h6>Point System</h6>
-            <input type="number" class="form-control mb-2" placeholder="Standard Win (default 3)"/>
-            <input type="number" class="form-control mb-2" placeholder="Standard Loss (default 0)"/>
-            <input type="number" class="form-control mb-2" placeholder="Tiebreaker Win (default 3)"/>
-            <input type="number" class="form-control mb-2" placeholder="Tiebreaker Loss (default 1)"/>
-            <input type="number" class="form-control mb-2" placeholder="Draw (default 1)"/>
-        </div>
-
-        <!-- Elimination Options -->
-        <div id="elimOptions" style="display:none;">
-            <div class="form-check mb-2">
-                <input type="checkbox" class="form-check-input" checked> <label>3rd Place Match</label>
-            </div>
-            <textarea class="form-control" placeholder="Match Rule"></textarea>
-        </div>
-
-        <!-- Round Robin Options -->
-        <div id="rrOptions" style="display:none;">
-            <div class="form-check mb-2">
-                <input type="checkbox" class="form-check-input"> <label>Double Round</label>
-            </div>
-            <textarea class="form-control" placeholder="Match Rule"></textarea>
-        </div>
-      <div class="d-flex justify-content-between mt-3">
-            <a href="@Url.Action("Index","Community")" class="btn btn-outline-secondary">Back</a>
-            <button type="button" class="btn btn-success" onclick="reviewSetup()">Review Setup</button>
-        </div>
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Setup Matches: @Model.GameName</h3>
+        @* Maybe link back to competition details or dashboard *@
+        <a asp-action="Details" asp-controller="Schedule" asp-route-id="@Model.ScheduleId" class="btn btn-outline-secondary">Cancel Setup</a>
     </div>
-</form>
+
+    <form asp-action="SetupMatch" asp-route-id="@Model.ScheduleId" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="ScheduleId" />
+        <input type="hidden" asp-for="GameName" /> @* Pass GameName back if needed *@
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+        @* --- Format Selection --- *@
+        <div class="mb-3">
+            <label asp-for="Format" class="form-label"></label>
+            <select asp-for="Format" class="form-select" id="competitionFormatSelect" asp-items="Html.GetEnumSelectList<CompetitionFormat>()"></select>
+            <span asp-validation-for="Format" class="text-danger"></span>
+        </div>
+
+        <hr />
+
+        @* --- Pool Play Specific Section --- *@
+        <div id="poolPlayOptions" style="display: none;"> @* Hidden by default *@
+            <h5>Pool Play Settings</h5>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="NumPool" class="form-label"></label>
+                    <input asp-for="NumPool" type="number" class="form-control" />
+                    <span asp-validation-for="NumPool" class="text-danger"></span>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="WinnersPerPool" class="form-label"></label>
+                    <input asp-for="WinnersPerPool" type="number" class="form-control" />
+                    <span asp-validation-for="WinnersPerPool" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label asp-for="StandingCalculation" class="form-label"></label>
+                <select asp-for="StandingCalculation" id="standingCalculationSelect" class="form-select" asp-items="Html.GetEnumSelectList<StandingCalculation>()"></select>
+                <span asp-validation-for="StandingCalculation" class="text-danger"></span>
+            </div>
+
+            @* Point System (Visible only for WinLossPoints calculation) *@
+            <div id="pointSystemOptions" style="display: none;"> @* Hidden by default *@
+                 <h6>Point System Settings</h6>
+                 <div class="row">
+                     <div class="col-md-6 mb-3">
+                         <label asp-for="StandardWin" class="form-label"></label>
+                         <input asp-for="StandardWin" type="number" class="form-control" />
+                         <span asp-validation-for="StandardWin" class="text-danger"></span>
+                     </div>
+                      <div class="col-md-6 mb-3">
+                         <label asp-for="StandardLoss" class="form-label"></label>
+                         <input asp-for="StandardLoss" type="number" class="form-control" />
+                         <span asp-validation-for="StandardLoss" class="text-danger"></span>
+                     </div>
+                 </div>
+                  <div class="row">
+                     <div class="col-md-6 mb-3">
+                         <label asp-for="TieBreakWin" class="form-label"></label>
+                         <input asp-for="TieBreakWin" type="number" class="form-control" />
+                         <span asp-validation-for="TieBreakWin" class="text-danger"></span>
+                     </div>
+                      <div class="col-md-6 mb-3">
+                         <label asp-for="TieBreakLoss" class="form-label"></label>
+                         <input asp-for="TieBreakLoss" type="number" class="form-control" />
+                         <span asp-validation-for="TieBreakLoss" class="text-danger"></span>
+                     </div>
+                 </div>
+                  <div class="row">
+                       <div class="col-md-6 mb-3">
+                         <label asp-for="Draw" class="form-label"></label>
+                         <input asp-for="Draw" type="number" class="form-control" />
+                         <span asp-validation-for="Draw" class="text-danger"></span>
+                     </div>
+                  </div>
+            </div>
+            <hr />
+        </div>
+
+        @* --- Elimination Specific Section --- *@
+        <div id="eliminationOptions" style="display: none;"> @* Hidden by default *@
+            <h5>Elimination Settings</h5>
+            <div class="form-check mb-3">
+                <input asp-for="ThirdPlaceMatch" class="form-check-input" type="checkbox" />
+                <label asp-for="ThirdPlaceMatch" class="form-check-label"></label>
+                <span asp-validation-for="ThirdPlaceMatch" class="text-danger"></span>
+            </div>
+             <div class="mb-3">
+                <label asp-for="MatchRule" class="form-label"></label>
+                <textarea asp-for="MatchRule" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="MatchRule" class="text-danger"></span>
+            </div>
+             <hr />
+        </div>
+
+        @* --- Round Robin Specific Section --- *@
+         <div id="roundRobinOptions" style="display: none;"> @* Hidden by default *@
+             <h5>Round Robin Settings</h5>
+             <div class="form-check mb-3">
+                <input asp-for="DoublePool" class="form-check-input" type="checkbox" />
+                <label asp-for="DoublePool" class="form-check-label"></label>
+                <span asp-validation-for="DoublePool" class="text-danger"></span>
+            </div>
+             <div class="mb-3">
+                <label asp-for="MatchRule" class="form-label"></label>
+                <textarea asp-for="MatchRule" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="MatchRule" class="text-danger"></span>
+            </div>
+             <hr />
+        </div>
+
+
+        <button type="submit" class="btn btn-primary w-100 py-2 mt-3">Save Setup & Activate</button>
+    </form>
 </div>
-
-<!-- Review Modal -->
-<div class="modal fade" id="reviewModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Review Match Setup</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <p id="reviewSummary">Loading summary...</p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Back to Edit</button>
-        <button type="button" class="btn btn-primary" onclick="confirmSetup()">Confirm</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-
 
 @section Scripts {
-<script>
-function toggleMatchOptions(){
-    let format = document.getElementById("matchFormat").value;
-    document.getElementById("poolOptions").style.display = format === "Pool Play" ? "block" : "none";
-    document.getElementById("elimOptions").style.display = format === "Elimination" ? "block" : "none";
-    document.getElementById("rrOptions").style.display = format === "Round Robin" ? "block" : "none";
-}
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+    <script>
+        const formatSelect = document.getElementById('competitionFormatSelect');
+        const poolPlayDiv = document.getElementById('poolPlayOptions');
+        const eliminationDiv = document.getElementById('eliminationOptions');
+        const roundRobinDiv = document.getElementById('roundRobinOptions');
 
-function reviewSetup() {
-    let format = document.getElementById("matchFormat").value;
-    let summary = "";
+        const standingSelect = document.getElementById('standingCalculationSelect');
+        const pointsDiv = document.getElementById('pointSystemOptions');
 
-    if (format === "Pool Play") {
-        let poolsField = document.getElementById("numPools");
-        let winnersField = document.getElementById("winnersPerPool");
+        // Enum values (ensure these match your CompetitionFormat enum integers)
+        const poolPlayValue = "@((int)CompetitionFormat.PoolPlay)";
+        const eliminationValue = "@((int)CompetitionFormat.Elimination)";
+        const roundRobinValue = "@((int)CompetitionFormat.RoundRobin)";
 
-        let pools = poolsField ? poolsField.value || 2 : 2;
-        let winners = winnersField ? winnersField.value || 1 : 1;
+        // Enum values for StandingCalculation
+         const winLossPointsValue = "@((int)StandingCalculation.WinLossPoints)";
 
-        summary = `${pools} Pools, ${winners} Winners per Pool. 
-                   Approx. 8 Teams, 28 Matches, 1 Round, 7 Matches per Team.`;
-    } 
-    else if (format === "Elimination") {
-        summary = `Single Elimination Format. 
-                   Approx. 8 Teams, 7 Matches, Includes 3rd Place Match.`;
-    } 
-    else if (format === "Round Robin") {
-        summary = `Round Robin Format. 
-                   8 Teams, Each plays 7 Matches. Total ~28 Matches.`;
-    }
+        function toggleFormatOptions() {
+            const selectedFormat = formatSelect.value;
 
-    document.getElementById("reviewSummary").innerText = summary;
-    new bootstrap.Modal(document.getElementById('reviewModal')).show();
-}
+            // Hide all format-specific sections initially
+            poolPlayDiv.style.display = 'none';
+            eliminationDiv.style.display = 'none';
+            roundRobinDiv.style.display = 'none';
+             togglePointSystemOptions(); // Also hide/show points based on initial standing calc
 
-function confirmSetup() {
-    alert("Setup confirmed! Competition ready to publish.");
-    window.location.href = '@Url.Action("Index","Community")';
-}
-</script>
+            // Show the relevant section
+            if (selectedFormat === poolPlayValue) {
+                poolPlayDiv.style.display = 'block';
+                 togglePointSystemOptions(); // Check point system visibility on format change
+            } else if (selectedFormat === eliminationValue) {
+                eliminationDiv.style.display = 'block';
+            } else if (selectedFormat === roundRobinValue) {
+                roundRobinDiv.style.display = 'block';
+            }
+        }
+
+         function togglePointSystemOptions() {
+            // Only relevant if pool play is visible
+            if (poolPlayDiv.style.display === 'block' && standingSelect.value === winLossPointsValue) {
+                pointsDiv.style.display = 'block';
+            } else {
+                pointsDiv.style.display = 'none';
+            }
+         }
+
+
+        // Event listeners
+        formatSelect.addEventListener('change', toggleFormatOptions);
+         standingSelect.addEventListener('change', togglePointSystemOptions);
+
+
+        // Initial call on page load to set the correct visibility
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleFormatOptions();
+        });
+    </script>
 }

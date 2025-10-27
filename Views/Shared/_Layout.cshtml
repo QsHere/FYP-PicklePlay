@@ -69,6 +69,8 @@ body {
 </head>
 <body>
 
+
+
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-custom shadow-sm">
         <div class="container">
@@ -197,6 +199,24 @@ body {
 
     <!-- Main Content -->
     <main class="container flex-grow-1 bg-white rounded shadow-sm p-4 mt-3 mb-5">
+
+    @* --- ADD THIS BLOCK --- *@
+            @if (TempData["SuccessMessage"] != null)
+ {
+     <div class="alert alert-success alert-dismissible fade show" role="alert" id="success-alert"> @* Ensure ID is present *@
+         @TempData["SuccessMessage"]
+         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+     </div>
+ }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            @* --- END ADD --- *@
+            
         @RenderBody()
     </main>
 
@@ -259,6 +279,25 @@ body {
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js"></script>
+
+    @* --- ADD THIS SCRIPT BLOCK --- *@
+    <script>
+        // Wait for the document to be fully loaded
+        document.addEventListener('DOMContentLoaded', (event) => {
+            // Find the success alert by its ID (make sure you added id="success-alert" to the alert div)
+            var successAlert = document.getElementById('success-alert');
+
+            if (successAlert) {
+                // Set a timeout to close the alert after 4000 milliseconds (4 seconds)
+                setTimeout(() => {
+                    // Use Bootstrap's Alert instance to close it smoothly
+                    var alertInstance = bootstrap.Alert.getOrCreateInstance(successAlert);
+                    alertInstance.close();
+                }, 4000); // 4000 milliseconds = 4 seconds
+            }
+        });
+    </script>
+    @* --- END ADDED SCRIPT BLOCK --- *@
     @RenderSection("Scripts", required: false)
 </body>
 </html>
