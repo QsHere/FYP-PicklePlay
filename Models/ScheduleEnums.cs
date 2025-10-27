@@ -140,6 +140,7 @@ namespace FYP_QS_CODE.Models
         Active = 1,
         Past = 2,
         Quit = 3,
-        Cancelled = 4
+        Cancelled = 4,
+        PendingSetup = 5
     }
 }

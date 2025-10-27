@@ -1,124 +1,185 @@
+@model ScheduleCompetitionViewModel
+@using FYP_QS_CODE.Models
 @{
-    ViewData["Title"] = "Create Competition";
+    ViewData["Title"] = "Create Competition Schedule";
 }
 
 <div class="container">
-    <h2>Create Competition</h2>
-    <form>
-        <!-- Competition Detail -->
-        <h5>Competition Detail</h5>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Create Competition</h3>
+        <button type="button" class="btn btn-outline-secondary" onclick="confirmExit()">Back</button>
+    </div>
+
+    <form asp-action="CreateCompetition" method="post">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+        @* --- General Info --- *@
+        <h5 class="mt-4">General Information</h5>
         <div class="mb-3">
-            <label class="form-label">Location</label>
-            <input type="text" class="form-control"/>
+            <label asp-for="GameName" class="form-label"></label>
+            <input asp-for="GameName" type="text" maxlength="100" class="form-control"/>
+            <span asp-validation-for="GameName" class="text-danger"></span>
         </div>
-        <div class="mb-3">
-            <label class="form-label">Approximate Starting Time</label>
-            <input type="datetime-local" class="form-control"/>
-            <small class="text-muted">You can start your competition anytime once there are enough confirmed teams/players.</small>
+        @* REMOVED Event Tag Select *@
+         <div class="mb-3">
+            <label asp-for="Description" class="form-label"></label>
+            <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+            <span asp-validation-for="Description" class="text-danger"></span>
         </div>
 
-        <!-- Timeline -->
-        <h5 class="mt-4">Timeline</h5>
-        <div class="row">
-            <div class="col-md-6 mb-3">
-                <label>Registration Open</label>
-                <input type="datetime-local" class="form-control"/>
-            </div>
-            <div class="col-md-6 mb-3">
-                <label>Earlybird Deadline (Optional)</label>
-                <input type="datetime-local" class="form-control"/>
-            </div>
+        @* --- Schedule --- *@
+        <h5 class="mt-4">Schedule</h5>
+         <div class="mb-3">
+            <label asp-for="Location" class="form-label"></label>
+            <input asp-for="Location" type="text" class="form-control"/>
+            <span asp-validation-for="Location" class="text-danger"></span>
         </div>
         <div class="row">
-            <div class="col-md-6 mb-3">
-                <label>Registration Deadline</label>
-                <input type="datetime-local" class="form-control"/>
+             <div class="col-md-6 mb-3">
+                <label asp-for="StartTime" class="form-label"></label>
+                <input asp-for="StartTime" type="datetime-local" class="form-control"/>
+                <span asp-validation-for="StartTime" class="text-danger"></span>
             </div>
-            <div class="col-md-6 mb-3">
-                <label>Duration (Days)</label>
-                <input type="number" class="form-control"/>
+             <div class="col-md-6 mb-3">
+                <label asp-for="EndTime" class="form-label"></label>
+                <input asp-for="EndTime" type="datetime-local" class="form-control"/>
+                <span asp-validation-for="EndTime" class="text-danger"></span>
             </div>
+        </div>
+        <div class="mb-3">
+            <label asp-for="ApproxStartTime" class="form-label"></label>
+            <input asp-for="ApproxStartTime" type="datetime-local" class="form-control"/>
+            <span asp-validation-for="ApproxStartTime" class="text-danger"></span>
         </div>
 
-        <!-- Restrictions -->
+
+        @* --- Registration --- *@
+        <h5 class="mt-4">Registration</h5>
+        <div class="row">
+             <div class="col-md-6 mb-3">
+                <label asp-for="RegOpen" class="form-label"></label>
+                <input asp-for="RegOpen" type="datetime-local" class="form-control"/>
+                <span asp-validation-for="RegOpen" class="text-danger"></span>
+            </div>
+             <div class="col-md-6 mb-3">
+                <label asp-for="RegClose" class="form-label"></label>
+                <input asp-for="RegClose" type="datetime-local" class="form-control"/>
+                <span asp-validation-for="RegClose" class="text-danger"></span>
+            </div>
+        </div>
+         <div class="mb-3">
+            <label asp-for="EarlyBirdClose" class="form-label"></label>
+            <input asp-for="EarlyBirdClose" type="datetime-local" class="form-control"/>
+            <span asp-validation-for="EarlyBirdClose" class="text-danger"></span>
+        </div>
+
+        @* --- Participation & Fees --- *@
+        <h5 class="mt-4">Participation & Fees</h5>
+         <div class="row">
+            <div class="col-md-6 mb-3">
+                <label asp-for="NumTeam" class="form-label"></label>
+                <input asp-for="NumTeam" type="number" class="form-control"/>
+                <span asp-validation-for="NumTeam" class="text-danger"></span>
+            </div>
+             <div class="col-md-6 mb-3">
+                <label asp-for="FeeType" class="form-label"></label>
+                @* --- MODIFIED Fee Type Select --- *@
+                <select asp-for="FeeType" class="form-select" id="feeSelect" onchange="toggleFeeInput()">
+                    @* Manually specify options. Value corresponds to the FeeType enum integer *@
+                    <option value="@((int)FeeType.Free)">Free</option>
+                    <option value="@((int)FeeType.PerPerson)">Per Team</option> @* Display "Per Team", Value maps to PerPerson *@
+                </select>
+                <span asp-validation-for="FeeType" class="text-danger"></span>
+            </div>
+        </div>
+         <div id="feeInput" class="mb-3" style='display:@(Model.FeeType == FeeType.PerPerson ? "block" : "none");'> @* Adjust initial display based on default *@
+            <label asp-for="FeeAmount" class="form-label"></label> @* Label text updated in ViewModel *@
+            <input asp-for="FeeAmount" type="number" class="form-control" placeholder="Enter price per team (RM)" step="0.01"/>
+            <span asp-validation-for="FeeAmount" class="text-danger"></span>
+        </div>
+
+
+        @* --- Competition Format --- *@
+        <h5 class="mt-4">Competition Format</h5>
+        <div class="mb-3">
+            <label asp-for="Format" class="form-label"></label>
+             <select asp-for="Format" class="form-select" asp-items="Html.GetEnumSelectList<CompetitionFormat>()"></select>
+             <span asp-validation-for="Format" class="text-danger"></span>
+        </div>
+
+
+        @* --- Restrictions --- *@
         <h5 class="mt-4">Restrictions</h5>
         <div class="row">
             <div class="col-md-6 mb-3">
-                <label>Min Rank</label>
-                <input type="number" class="form-control"/>
+                <label asp-for="MinRankRestriction" class="form-label"></label>
+                <input asp-for="MinRankRestriction" type="number" class="form-control" step="0.01"/>
+                <span asp-validation-for="MinRankRestriction" class="text-danger"></span>
             </div>
             <div class="col-md-6 mb-3">
-                <label>Max Rank</label>
-                <input type="number" class="form-control"/>
+                <label asp-for="MaxRankRestriction" class="form-label"></label>
+                <input asp-for="MaxRankRestriction" type="number" class="form-control" step="0.01"/>
+                <span asp-validation-for="MaxRankRestriction" class="text-danger"></span>
             </div>
         </div>
         <div class="row">
             <div class="col-md-6 mb-3">
-                <label>Gender</label>
-                <select class="form-select"><option>No Restriction</option><option>Male</option><option>Female</option></select>
+                <label asp-for="GenderRestriction" class="form-label"></label>
+                <select asp-for="GenderRestriction" class="form-select" asp-items="Html.GetEnumSelectList<GenderRestriction>()"></select>
+                <span asp-validation-for="GenderRestriction" class="text-danger"></span>
             </div>
             <div class="col-md-6 mb-3">
-                <label>Age Group</label>
-                <select class="form-select"><option>No Restriction</option><option>Junior (Under 18)</option><option>Adult (18-55)</option><option>Senior (Above 55)</option></select>
+                <label asp-for="AgeGroupRestriction" class="form-label"></label>
+                <select asp-for="AgeGroupRestriction" class="form-select" asp-items="Html.GetEnumSelectList<AgeGroupRestriction>()"></select>
+                <span asp-validation-for="AgeGroupRestriction" class="text-danger"></span>
             </div>
         </div>
 
-        <!-- Fee -->
-        <div class="mb-3">
-            <label>Competition Fee</label>
-            <select class="form-select" id="compFeeSelect" onchange="toggleCompFee()">
-                <option>Free</option>
-                <option>Per Team</option>
-            </select>
-            <div id="compFeeInput" style="display:none;" class="mt-2">
-                <input type="number" class="form-control" placeholder="Enter price (RM)" step="0.01"/>
+        @* --- Advanced Options --- *@
+        <h5 class="mt-4">Advanced Options</h5>
+         <div class="row">
+             <div class="col-md-6 mb-3">
+                <label asp-for="CancellationFreeze" class="form-label"></label>
+                <select asp-for="CancellationFreeze" class="form-select" asp-items="Html.GetEnumSelectList<CancellationFreeze>()"></select>
+                <span asp-validation-for="CancellationFreeze" class="text-danger"></span>
             </div>
-        </div>
+             @* REMOVED HostRole Select *@
+             <div class="col-md-6 mb-3">
+                 <label asp-for="Privacy" class="form-label"></label>
+                 <select asp-for="Privacy" class="form-select" asp-items="Html.GetEnumSelectList<Privacy>()"></select>
+                 <span asp-validation-for="Privacy" class="text-danger"></span>
+             </div>
+         </div>
 
-        <!-- Privacy -->
-        <div class="mb-3">
-            <label>Privacy</label>
-            <select class="form-select">
-                <option>Public</option>
-                <option>Private</option>
-            </select>
-        </div>
 
-        <!-- Name & Description -->
-        <div class="mb-3">
-            <label>Competition Name</label>
-            <input type="text" maxlength="100" class="form-control"/>
-        </div>
-        <div class="mb-3">
-            <label>Competition Description</label>
-            <textarea class="form-control"></textarea>
-        </div>
-
-     <div class="d-flex justify-content-between align-items-center">
-    <button type="button" class="btn btn-outline-secondary" onclick="confirmExit()">Back</button>
-
-    <div>
-        <button type="button" class="btn btn-primary" onclick="saveDraftAndNext()">
-            Next Step
-        </button>        
-    </div>
-</div>
+        <button type="submit" class="btn btn-success w-100 py-2 mt-3">Create & Setup Matches</button>
     </form>
+</div>
 
 @section Scripts {
-<script>
-function toggleCompFee(){
-    const select = document.getElementById("compFeeSelect");
-    document.getElementById("compFeeInput").style.display = select.value === "Per Team" ? "block" : "none";
-}
-function confirmExit() {
-        if (confirm("Are you sure you want to exit? No draft will be saved...")) {
-            window.location.href = '@Url.Action("Index","Community")';
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+    <script>
+        // --- Fee Toggle Script ---
+        function toggleFeeInput(){
+            const feeSelect = document.getElementById("feeSelect");
+            const feeInput = document.getElementById("feeInput");
+             // Value for PerPerson enum member (representing "Per Team")
+             const perTeamValue = "@((int)FeeType.PerPerson)";
+             if(feeSelect.value === perTeamValue){
+                feeInput.style.display = "block";
+            } else {
+                feeInput.style.display = "none";
+                const feeAmountInput = feeInput.querySelector('input');
+                 if(feeAmountInput) { feeAmountInput.value = ''; }
+            }
         }
-    }
-function saveDraftAndNext() {
-    alert("Competition details saved as draft. Redirecting to Setup Match...");
-    window.location.href = '@Url.Action("SetupMatch","Community")';
-}
-</script>
+        document.addEventListener("DOMContentLoaded", toggleFeeInput);
+
+        // --- Exit Confirmation Script ---
+         function confirmExit() { /* ... keep existing ... */ }
+
+         // --- Future Time Validation Script ---
+         document.addEventListener("DOMContentLoaded", function() { /* ... keep existing ... */ });
+    </script>
 }

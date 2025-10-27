@@ -40,6 +40,9 @@ namespace FYP_QS_CODE.Models
         [Column("num_player")]
         public int? NumPlayer { get; set; }
 
+        [Column("num_team")]
+        public int? NumTeam { get; set; }
+
         [Column("minRankRestriction", TypeName = "decimal(5,4)")]
         public decimal? MinRankRestriction { get; set; }
 
