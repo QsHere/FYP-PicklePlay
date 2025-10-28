@@ -18,40 +18,20 @@ namespace FYP_QS_CODE.Controllers
         }
 
         // GET: /Competition/Listing
-        public IActionResult Listing()
-        {
-            // Fetch SCHEDULES of type Competition, including the related Competition data
-            var competitionSchedules = _context.Schedules
-                                      .Include(s => s.Competition) // Eager load Competition details
-                                      .Where(s => s.ScheduleType == ScheduleType.Competition && s.Competition != null)
-                                      .ToList(); // Fetch the data
+        
+public IActionResult Listing()
+{
+    // Fetch SCHEDULES of type Competition, status Active, including Competition data
+    var activeCompetitions = _context.Schedules
+                              .Include(s => s.Competition) // Eager load Competition details
+                              .Where(s => s.ScheduleType == ScheduleType.Competition
+                                       && s.Status == ScheduleStatus.Active // <-- ADD THIS FILTER
+                                       && s.Competition != null)
+                              .ToList(); // Fetch the data
 
-            // --- Corrected Mapping Example ---
-            // If you need a ViewModel, map it like this:
-            var viewModelList = competitionSchedules.Select(schedule => new CompetitionListViewModel // Assuming you create this ViewModel
-            {
-                 // Access properties from the 'schedule' object
-                 ScheduleId = schedule.ScheduleId, // Correct: Use ScheduleId from Schedule
-                 Name = schedule.GameName,       // Correct: Use GameName from Schedule
-                 Description = schedule.Description, // Correct: Use Description from Schedule
-                 Location = schedule.Location,     // Correct: Use Location from Schedule
-                 StartTime = schedule.StartTime,   // Correct: Use StartTime from Schedule
-                 EndTime = schedule.EndTime,       // Correct: Use EndTime from Schedule
-                 Status = schedule.Status,         // Correct: Use Status from Schedule
-                 FeeAmount = schedule.FeeAmount,   // Correct: Use FeeAmount from Schedule
-
-                 // Access competition-specific properties via navigation property
-                 Format = schedule.Competition.Format, // Correct: Use Format from schedule.Competition
-
-                 // CommunityId = schedule.CommunityId, // Add CommunityId to Schedule model if needed
-                 // CreatedBy = schedule.CreatedByUserId // Add CreatedByUserId to Schedule model if needed
-
-            }).ToList();
-
-            // Pass the list of ViewModels (or the original Schedule objects if your view handles it)
-            return View(viewModelList);
-            // Or: return View(competitionSchedules);
-        }
+    // Pass the filtered list of Schedule objects directly to the view
+    return View(activeCompetitions);
+}
 
         // GET: /Competition/CompDetails/{id}
         public IActionResult CompDetails(int id)
@@ -60,23 +40,25 @@ namespace FYP_QS_CODE.Controllers
             var schedule = _context.Schedules
                                   .Include(s => s.Competition) // Eager load Competition details
                                   .FirstOrDefault(s => s.ScheduleId == id
-                                                   && s.ScheduleType == ScheduleType.Competition
-                                                   && s.Competition != null); // Ensure Competition data exists
+                                                   && s.ScheduleType == ScheduleType.Competition); // Don't require s.Competition != null here, might view pending
 
             if (schedule == null)
             {
                 return NotFound();
             }
 
-            // --- Pass the Schedule object to the view ---
-            // The view can access properties like:
-            // @Model.GameName (from Schedule)
-            // @Model.Location (from Schedule)
-            // @Model.StartTime (from Schedule)
-            // @Model.Competition.Format (from Competition)
-            // @Model.Competition.NumPool (from Competition)
+            // Check if setup is actually complete, maybe add a flag to ViewModel later
+            if (schedule.Status == ScheduleStatus.PendingSetup)
+            {
+                // Optionally add a message indicating setup isn't complete
+                ViewData["SetupPending"] = true;
+            }
+
+            // Pass the Schedule object directly to the view
             return View(schedule);
         }
+        
+        
 
          // Placeholder ViewModel for Listing example
         public class CompetitionListViewModel

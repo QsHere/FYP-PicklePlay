@@ -350,30 +350,30 @@ public IActionResult CreateCompetition(ScheduleCompetitionViewModel vm)
                     scheduleToUpdate.Competition.TieBreakLoss = vm.TieBreakLoss;
                     scheduleToUpdate.Competition.Draw = vm.Draw;
                 }
-                 // Clear/Default non-Pool Play fields if desired
+                // Clear/Default non-Pool Play fields if desired
                 scheduleToUpdate.Competition.ThirdPlaceMatch = true; // Reset to default
                 scheduleToUpdate.Competition.DoublePool = false;   // Reset to default
-                 scheduleToUpdate.Competition.MatchRule = null; // Pool play doesn't use MatchRule per UI? Or maybe it does? Adjust if needed.
+                scheduleToUpdate.Competition.MatchRule = null; // Pool play doesn't use MatchRule per UI? Or maybe it does? Adjust if needed.
 
             }
             else if (vm.Format == CompetitionFormat.Elimination)
             {
                 scheduleToUpdate.Competition.ThirdPlaceMatch = vm.ThirdPlaceMatch;
                 scheduleToUpdate.Competition.MatchRule = vm.MatchRule;
-                 // Clear/Default non-Elimination fields
+                // Clear/Default non-Elimination fields
                 scheduleToUpdate.Competition.NumPool = 4; // Reset
-                // ... reset points ...
-                 scheduleToUpdate.Competition.DoublePool = false; // Reset
+                                                          // ... reset points ...
+                scheduleToUpdate.Competition.DoublePool = false; // Reset
 
             }
             else if (vm.Format == CompetitionFormat.RoundRobin)
             {
                 scheduleToUpdate.Competition.DoublePool = vm.DoublePool;
                 scheduleToUpdate.Competition.MatchRule = vm.MatchRule;
-                 // Clear/Default non-RoundRobin fields
+                // Clear/Default non-RoundRobin fields
                 scheduleToUpdate.Competition.NumPool = 4; // Reset
-                 // ... reset points ...
-                 scheduleToUpdate.Competition.ThirdPlaceMatch = true; // Reset
+                                                          // ... reset points ...
+                scheduleToUpdate.Competition.ThirdPlaceMatch = true; // Reset
             }
 
             // Update Schedule status from PendingSetup to Active
@@ -391,8 +391,8 @@ public IActionResult CreateCompetition(ScheduleCompetitionViewModel vm)
             }
             catch (DbUpdateConcurrencyException)
             {
-                 // Handle concurrency issues if necessary
-                 ModelState.AddModelError("", "The record you attempted to edit was modified by another user. Please reload and try again.");
+                // Handle concurrency issues if necessary
+                ModelState.AddModelError("", "The record you attempted to edit was modified by another user. Please reload and try again.");
             }
             catch (Exception ex)
             {
@@ -405,5 +405,49 @@ public IActionResult CreateCompetition(ScheduleCompetitionViewModel vm)
         }
 
         // ------------------------
+        
+        // POST: /Community/Publish/{id}
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Publish(int id)
+        {
+            var scheduleToPublish = _context.Schedules
+                                          .Include(s => s.Competition) // Include competition to ensure it exists
+                                          .FirstOrDefault(s => s.ScheduleId == id);
+
+            if (scheduleToPublish == null)
+            {
+                TempData["ErrorMessage"] = "Schedule not found.";
+                return RedirectToAction("Index");
+            }
+
+            // Validate: Is it a competition? Is it pending setup?
+            if (scheduleToPublish.ScheduleType != ScheduleType.Competition || scheduleToPublish.Competition == null)
+            {
+                 TempData["ErrorMessage"] = "This schedule is not a competition or is missing details.";
+                 return RedirectToAction("Index");
+            }
+
+            if (scheduleToPublish.Status != ScheduleStatus.PendingSetup)
+            {
+                 TempData["ErrorMessage"] = "This competition cannot be published because its status is not 'Pending Setup'.";
+                 return RedirectToAction("Index");
+            }
+
+            // Update Status to Active
+            scheduleToPublish.Status = ScheduleStatus.Active;
+
+            try
+            {
+                _context.SaveChanges(); // Or use repository's update method
+                TempData["SuccessMessage"] = $"Competition '{scheduleToPublish.GameName}' published successfully!";
+            }
+            catch (Exception ex)
+            {
+                 TempData["ErrorMessage"] = $"Error publishing competition: {ex.Message}";
+            }
+
+            return RedirectToAction("Index"); // Redirect back to the community index
+        }
     }
 }
