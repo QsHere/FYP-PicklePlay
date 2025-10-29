@@ -1,30 +1,173 @@
 @model IEnumerable<Schedule>
 @using FYP_QS_CODE.Models
-@{
-    ViewData["Title"] = "Community Hub";
+@using System.Globalization
+
+@* Helper record to store formatted calendar event info.
+  This is defined in @functions so it can be used in the C# block and the HTML.
+*@
+@functions {
+    public record CalendarEvent(
+        int ScheduleId,
+        string GameName,
+        DateTime StartTime,
+        ScheduleType ScheduleType)
+    {
+        public string CssClass => ScheduleType switch
+        {
+            ScheduleType.OneOff => "cal-event-oneoff",
+            ScheduleType.Recurring => "cal-event-recurring",
+            ScheduleType.Competition => "cal-event-comp",
+            _ => ""
+        };
+    }
 }
 
-<div class="container-fluid mt-4"> @* Use container-fluid for potentially wider layout *@
+@{
+    ViewData["Title"] = "Community Hub";
+
+    // --- 1. SETUP DATE NAVIGATION ---
+    var today = DateTime.Today;
+
+    // Check query string for requested month/year
+    int requestedYear = Context.Request.Query.TryGetValue("year", out var yearVal) ? int.Parse(yearVal) : today.Year;
+    int requestedMonth = Context.Request.Query.TryGetValue("month", out var monthVal) ? int.Parse(monthVal) : today.Month;
+    
+    // This is the date the calendar will be built from
+    var displayDate = new DateTime(requestedYear, requestedMonth, 1);
+
+    // Dates for navigation buttons
+    var currentMonthDate = today;
+    var nextMonthDate = displayDate.AddMonths(1);
+    var prevMonthDate = displayDate.AddMonths(-1);
+
+    // Calendar grid properties
+    var displayYear = displayDate.Year;
+    var displayMonth = displayDate.Month;
+    var daysInMonth = DateTime.DaysInMonth(displayYear, displayMonth);
+    var firstDayOfMonth = new DateTime(displayYear, displayMonth, 1);
+    var lastDayOfMonth = new DateTime(displayYear, displayMonth, daysInMonth);
+
+
+    // --- 2. PREPARE EVENT DATA FOR THE DISPLAYED MONTH ---
+    
+    // We will store all events in this dictionary, keyed by the Day (1-31)
+    var eventsByDay = new Dictionary<int, List<CalendarEvent>>();
+
+    // Helper to add events without duplicates (e.g., a recurring event and one-off on same day)
+    void AddEvent(int day, CalendarEvent calEvent)
+    {
+        if (!eventsByDay.ContainsKey(day))
+        {
+            eventsByDay[day] = new List<CalendarEvent>();
+        }
+        // Avoid adding the exact same schedule ID twice on one day
+        if (!eventsByDay[day].Any(e => e.ScheduleId == calEvent.ScheduleId))
+        {
+            eventsByDay[day].Add(calEvent);
+        }
+    }
+    
+    // Map .NET DayOfWeek to our RecurringWeek flag enum
+    var dayFlagMap = new Dictionary<DayOfWeek, RecurringWeek>
+    {
+        [DayOfWeek.Monday] = RecurringWeek.Mon, [DayOfWeek.Tuesday] = RecurringWeek.Tue,
+        [DayOfWeek.Wednesday] = RecurringWeek.Wed, [DayOfWeek.Thursday] = RecurringWeek.Thur,
+        [DayOfWeek.Friday] = RecurringWeek.Fri, [DayOfWeek.Saturday] = RecurringWeek.Sat,
+        [DayOfWeek.Sunday] = RecurringWeek.Sun
+    };
+
+    // --- Process all schedules from the Model ---
+    foreach (var schedule in Model.Where(s => s.StartTime.HasValue))
+    {
+        switch (schedule.ScheduleType)
+        {
+            // A: One-Off (Green)
+            case ScheduleType.OneOff:
+                if (schedule.StartTime.Value.Year == displayYear && schedule.StartTime.Value.Month == displayMonth)
+                {
+                    AddEvent(schedule.StartTime.Value.Day, new CalendarEvent(
+                        schedule.ScheduleId, schedule.GameName, schedule.StartTime.Value, schedule.ScheduleType.Value));
+                }
+                break;
+
+            // B: Competition (Yellow) - Can span multiple days
+            case ScheduleType.Competition:
+                var startDate = schedule.StartTime.Value;
+                var endDate = schedule.EndTime ?? startDate;
+                
+                // Loop from the start to the end of the competition
+                for (var date = startDate.Date; date <= endDate.Date; date = date.AddDays(1))
+                {
+                    // Only add days that are in the current viewing month
+                    if (date.Year == displayYear && date.Month == displayMonth)
+                    {
+                        AddEvent(date.Day, new CalendarEvent(
+                            schedule.ScheduleId, schedule.GameName, schedule.StartTime.Value, schedule.ScheduleType.Value));
+                    }
+                }
+                break;
+        }
+    }
+    
+    // C: Recurring (Blue) - Check all days in this month
+    var recurringSchedules = Model.Where(s => s.ScheduleType == ScheduleType.Recurring &&
+                                               s.RecurringWeek.HasValue && s.RecurringWeek != RecurringWeek.None &&
+                                               s.StartTime.HasValue); // StartTime holds the *time*
+
+    for (int i = 1; i <= daysInMonth; i++)
+    {
+        var date = new DateTime(displayYear, displayMonth, i);
+        if (dayFlagMap.TryGetValue(date.DayOfWeek, out var dayFlag))
+        {
+            // Find all recurring schedules that run on this day of the week
+            var schedulesForThisDay = recurringSchedules.Where(s => s.RecurringWeek.Value.HasFlag(dayFlag));
+            foreach (var schedule in schedulesForThisDay)
+            {
+                AddEvent(i, new CalendarEvent(
+                    schedule.ScheduleId, schedule.GameName, schedule.StartTime.Value, schedule.ScheduleType.Value));
+            }
+        }
+    }
+
+
+    // --- 3. PREPARE LISTS FOR ACTIVE/PAST TABS (Same as before) ---
+    // This logic is independent of the calendar view and always uses 'today'
+    var allGames = Model.Where(s => s.ScheduleType == ScheduleType.OneOff || s.ScheduleType == ScheduleType.Recurring);
+    var activeGames = allGames.Where(g => g.ScheduleType == ScheduleType.Recurring ||
+                                          (g.StartTime.HasValue && g.StartTime.Value.Date >= today))
+                              .OrderBy(g => g.StartTime);
+    var pastGames = allGames.Where(g => g.ScheduleType == ScheduleType.OneOff &&
+                                        g.StartTime.HasValue && g.StartTime.Value.Date < today)
+                            .OrderByDescending(g => g.StartTime);
+
+    var allCompetitions = Model.Where(s => s.ScheduleType == ScheduleType.Competition);
+    var activeCompetitions = allCompetitions.Where(c => c.Status == ScheduleStatus.Active ||
+                                                        c.Status == ScheduleStatus.PendingSetup)
+                                            .OrderBy(c => c.StartTime);
+    var pastCompetitions = allCompetitions.Where(c => c.Status == ScheduleStatus.Past)
+                                          .OrderByDescending(c => c.StartTime);
+}
+
+<div class="container-fluid mt-4">
     <div class="row">
 
         @* --- Left Column (Placeholder) --- *@
-        <div class="col-lg-3 d-none d-lg-block"> @* Hide on smaller screens *@
+        <div class="col-lg-3 d-none d-lg-block">
             <div class="card sticky-top" style="top: 20px;">
                 <div class="card-body">
                     <h5 class="card-title">Community Info</h5>
                     <p class="card-text">Placeholder for community details, quick links, etc.</p>
-                    @* Add community specific info here *@
-                     <a asp-action="CreateOneOff" asp-controller="Community" class="btn btn-sm btn-outline-success mb-2 w-100">Create One-Off</a>
-                     <a asp-action="CreateRecurring" asp-controller="Community" class="btn btn-sm btn-outline-success mb-2 w-100">Create Recurring</a>
-                     <a asp-action="CreateCompetition" asp-controller="Community" class="btn btn-sm btn-outline-success w-100">Create Competition</a>
+                    <a asp-action="CreateOneOff" asp-controller="Community" class="btn btn-sm btn-outline-success mb-2 w-100">Create One-Off</a>
+                    <a asp-action="CreateRecurring" asp-controller="Community" class="btn btn-sm btn-outline-success mb-2 w-100">Create Recurring</a>
+                    <a asp-action="CreateCompetition" asp-controller="Community" class="btn btn-sm btn-outline-success w-100">Create Competition</a>
                 </div>
             </div>
         </div>
 
         @* --- Center Content Column --- *@
-        <div class="col-lg-6 col-md-8"> @* Takes up more space *@
+        <div class="col-lg-6 col-md-8">
 
-             @* --- TABS START --- *@
+             @* --- MAIN TABS (Activity, Chat, Members) --- *@
             <ul class="nav nav-tabs mb-3" id="communityMainTabs" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="activity-tab" data-bs-toggle="tab" data-bs-target="#activity-tab-pane" type="button" role="tab" aria-controls="activity-tab-pane" aria-selected="true">Activity</button>
@@ -33,105 +176,290 @@
                     <button class="nav-link disabled" id="chat-tab" data-bs-toggle="tab" data-bs-target="#chat-tab-pane" type="button" role="tab" aria-controls="chat-tab-pane" aria-selected="false">Chat</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link disabled" id="members-tab" data-bs-toggle="tab" data-bs-target="#members-tab-pane" type="button" role="tab" aria-controls="members-tab-pane" aria-selected="false">Members</button>
+                     <button class="nav-link disabled" id="members-tab" data-bs-toggle="tab" data-bs-target="#members-tab-pane" type="button" role="tab" aria-controls="members-tab-pane" aria-selected="false">Members</button>
                 </li>
             </ul>
 
             <div class="tab-content" id="communityMainTabsContent">
+                
                 @* --- ACTIVITY TAB PANE --- *@
                 <div class="tab-pane fade show active" id="activity-tab-pane" role="tabpanel" aria-labelledby="activity-tab" tabindex="0">
 
-                    @* --- Games Section --- *@
-                    <h4 class="mb-3">Games Schedule</h4>
-                    <div class="row row-cols-1 row-cols-md-2 g-4 mb-4"> @* Using 2 cols in center *@
-                        @foreach (var game in Model.Where(s => s.ScheduleType == ScheduleType.OneOff || s.ScheduleType == ScheduleType.Recurring))
-                        {
-                            <div class="col">
-                                <div class="card h-100 shadow-sm">
-                                    <div class="card-body d-flex flex-column">
-                                        <h5 class="card-title">@game.GameName</h5>
-                                        @if(game.EventTag.HasValue && game.EventTag != EventTag.None) // Hide "None" tag
-                                        {
-                                            <span class="badge bg-primary mb-2 align-self-start">@game.EventTag.ToString()</span>
+                    @* --- Activity Sub-Tabs --- *@
+                    <ul class="nav nav-pills nav-fill mb-3" id="activitySubTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="regular-schedule-tab" data-bs-toggle="tab" data-bs-target="#regular-schedule-pane" type="button" role="tab" aria-controls="regular-schedule-pane" aria-selected="true">Schedule Calendar</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="games-tab" data-bs-toggle="tab" data-bs-target="#games-pane" type="button" role="tab" aria-controls="games-pane" aria-selected="false">Games</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="competitions-tab" data-bs-toggle="tab" data-bs-target="#competitions-pane" type="button" role="tab" aria-controls="competitions-pane" aria-selected="false">Competitions</button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="activitySubTabsContent">
+
+                        @* --- PANE 1: Regular Schedule (Calendar) --- *@
+                        <div class="tab-pane fade show active" id="regular-schedule-pane" role="tabpanel" aria-labelledby="regular-schedule-tab" tabindex="0">
+                            
+                            @* --- NEW: Calendar Navigation --- *@
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <a asp-action="Index" asp-controller="Community"
+                                   asp-route-year="@prevMonthDate.Year" asp-route-month="@prevMonthDate.Month"
+                                   class="btn btn-outline-secondary">&lt; Prev</a>
+                                
+                                <h4 class="mb-0">@displayDate.ToString("MMMM yyyy")</h4>
+                                
+                                <a asp-action="Index" asp-controller="Community"
+                                   asp-route-year="@nextMonthDate.Year" asp-route-month="@nextMonthDate.Month"
+                                   class="btn btn-outline-secondary">Next &gt;</a>
+                            </div>
+                            @* --- END: Calendar Navigation --- *@
+
+
+                            <div class="table-responsive">
+                                <table class="table table-bordered calendar-table" style="table-layout: fixed;">
+                                    <thead class="table-light">
+                                        <tr class="text-center">
+                                            <th>Mon</th>
+                                            <th>Tue</th>
+                                            <th>Wed</th>
+                                            <th>Thu</th>
+                                            <th>Fri</th>
+                                            <th>Sat</th>
+                                            <th>Sun</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @{
+                                            // Calculate offset for the first day
+                                            int startOffset = (int)firstDayOfMonth.DayOfWeek;
+                                            startOffset = (startOffset == 0) ? 6 : startOffset - 1; // Mon=0..Sun=6
+                                            
+                                            var dayCounter = 1;
                                         }
-                                        <p class="card-text mb-1 small"><i class="bi bi-geo-alt-fill me-1"></i> @game.Location</p>
-                                        <p class="card-text mb-1 small">
-                                            <i class="bi bi-calendar-event me-1"></i>
-                                            @if (game.StartTime.HasValue) {
-                                                if(game.ScheduleType == ScheduleType.Recurring) {
-                                                    <span>Every @game.RecurringWeek?.ToString(), @game.StartTime.Value.ToString("t")</span>
-                                                } else {
-                                                    <span>@game.StartTime.Value.ToString("ddd, MMM d, H:mm")</span>
+
+                                        @for (int w = 0; w < 6; w++) // Max 6 weeks
+                                        {
+                                            <tr>
+                                                @for (int d = 0; d < 7; d++) // 7 days
+                                                {
+                                                    if (w == 0 && d < startOffset)
+                                                    {
+                                                        <td class="calendar-day other-month"></td> // Empty
+                                                    }
+                                                    else if (dayCounter > daysInMonth)
+                                                    {
+                                                        <td class="calendar-day other-month"></td> // Empty
+                                                    }
+                                                    else
+                                                    {
+                                                        var day = dayCounter;
+                                                        var isToday = (displayYear == today.Year && displayMonth == today.Month && day == today.Day);
+                                                        
+                                                        <td class="calendar-day @(isToday ? "today" : "")">
+                                                            <strong class="day-number">@day</strong>
+                                                            
+                                                            @* --- NEW: Event list for the day --- *@
+                                                            <div class="cal-events-wrapper">
+                                                            @if (eventsByDay.TryGetValue(day, out var events))
+                                                            {
+                                                                @foreach (var calEvent in events.OrderBy(e => e.StartTime))
+                                                                {
+                                                                    <a asp-controller="Schedule" asp-action="Details" asp-route-id="@calEvent.ScheduleId"
+                                                                       class="cal-event @calEvent.CssClass" 
+                                                                       title="@calEvent.GameName (@calEvent.ScheduleType.ToString())">
+                                                                        @calEvent.StartTime.ToString("hh:mm tt")
+                                                                    </a>
+                                                                }
+                                                            }
+                                                            </div>
+                                                            @* --- END: Event list --- *@
+                                                        </td>
+                                                        dayCounter++;
+                                                    }
                                                 }
-                                            }
-                                        </p>
-                                        <p class="card-text small"><i class="bi bi-people-fill me-1"></i> @game.NumPlayer players</p>
-                                        <div class="mt-auto pt-2">
-                                            <a asp-controller="Schedule" asp-action="Details" asp-route-id="@game.ScheduleId" class="btn btn-sm btn-outline-primary w-100">View Details</a>
-                                        </div>
+                                            </tr>
+                                            if (dayCounter > daysInMonth) { break; } 
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        @* --- PANE 2: Games (Active/Past) --- *@
+                        <div class="tab-pane fade" id="games-pane" role="tabpanel" aria-labelledby="games-tab" tabindex="0">
+                            
+                            <ul class="nav nav-tabs nav-justified mb-3" id="gamesSubTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="active-games-tab" data-bs-toggle="tab" data-bs-target="#active-games-pane" type="button" role="tab" aria-controls="active-games-pane" aria-selected="true">Active</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="past-games-tab" data-bs-toggle="tab" data-bs-target="#past-games-pane" type="button" role="tab" aria-controls="past-games-pane" aria-selected="false">Past</button>
+                                </li>
+                            </ul>
+
+                            <div class="tab-content" id="gamesSubTabsContent">
+                                <div class="tab-pane fade show active" id="active-games-pane" role="tabpanel" aria-labelledby="active-games-tab" tabindex="0">
+                                    <div class="row row-cols-1 row-cols-md-2 g-4 mb-4">
+                                        @if (!activeGames.Any()) {
+                                            <p class="text-muted col-12">No active games scheduled.</p>
+                                        }
+                                        @foreach (var game in activeGames) {
+                                            <div class="col">
+                                                <div class="card h-100 shadow-sm">
+                                                    <div class="card-body d-flex flex-column">
+                                                        <h5 class="card-title">@game.GameName</h5>
+                                                        @if(game.EventTag.HasValue && game.EventTag != EventTag.None) {
+                                                            <span class="badge bg-primary mb-2 align-self-start">@game.EventTag.ToString()</span>
+                                                        }
+                                                        <p class="card-text mb-1 small"><i class="bi bi-geo-alt-fill me-1"></i> @game.Location</p>
+                                                        <p class="card-text mb-1 small">
+                                                            <i class="bi bi-calendar-event me-1"></i>
+                                                            @if (game.StartTime.HasValue) {
+                                                                if(game.ScheduleType == ScheduleType.Recurring) {
+                                                                    <span>Every @game.RecurringWeek?.ToString(), @game.StartTime.Value.ToString("t")</span>
+                                                                } else {
+                                                                    <span>@game.StartTime.Value.ToString("ddd, MMM d, H:mm")</span>
+                                                                }
+                                                            }
+                                                        </p>
+                                                        <p class="card-text small"><i class="bi bi-people-fill me-1"></i> @game.NumPlayer players</p>
+                                                        <div class="mt-auto pt-2">
+                                                            <a asp-controller="Schedule" asp-action="Details" asp-route-id="@game.ScheduleId" class="btn btn-sm btn-outline-primary w-100">View Details</a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="past-games-pane" role="tabpanel" aria-labelledby="past-games-tab" tabindex="0">
+                                    <div class="row row-cols-1 row-cols-md-2 g-4 mb-4">
+                                        @if (!pastGames.Any()) {
+                                            <p class="text-muted col-12">No past games found.</p>
+                                        }
+                                        @foreach (var game in pastGames) {
+                                            <div class="col">
+                                                <div class="card h-100 shadow-sm" style="opacity: 0.7;">
+                                                    <div class="card-body d-flex flex-column">
+                                                        <h5 class="card-title">@game.GameName</h5>
+                                                        @if(game.EventTag.HasValue && game.EventTag != EventTag.None) {
+                                                            <span class="badge bg-secondary mb-2 align-self-start">@game.EventTag.ToString()</span>
+                                                        }
+                                                        <p class="card-text mb-1 small"><i class="bi bi-geo-alt-fill me-1"></i> @game.Location</p>
+                                                        <p class="card-text mb-1 small">
+                                                            <i class="bi bi-calendar-event me-1"></i>
+                                                            @if (game.StartTime.HasValue) {
+                                                                <span>@game.StartTime.Value.ToString("ddd, MMM d, H:mm")</span>
+                                                            }
+                                                        </p>
+                                                        <p class="card-text small"><i class="bi bi-people-fill me-1"></i> @game.NumPlayer players</p>
+                                                        <div class="mt-auto pt-2">
+                                                            <a asp-controller="Schedule" asp-action="Details" asp-route-id="@game.ScheduleId" class="btn btn-sm btn-outline-secondary w-100">View Details</a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
                                     </div>
                                 </div>
                             </div>
-                        }
-                        @if (!Model.Any(s => s.ScheduleType == ScheduleType.OneOff || s.ScheduleType == ScheduleType.Recurring)) {
-                            <p class="text-muted">No regular games scheduled.</p>
-                        }
-                    </div>
 
-                    <hr />
+                        </div>
 
-                    @* --- Competitions Section --- *@
-                     <h4 class="mb-3 mt-4">Competitions</h4>
-                     <div class="row row-cols-1 row-cols-md-2 g-4"> @* Using 2 cols in center *@
-                         @foreach (var comp in Model.Where(s => s.ScheduleType == ScheduleType.Competition))
-                         {
-                             <div class="col">
-                                 <div class="card h-100 shadow-sm">
-                                     <div class="card-body d-flex flex-column">
-                                        <h5 class="card-title">@comp.GameName</h5>
-                                        <p class="card-text mb-1 small"><i class="bi bi-geo-alt-fill me-1"></i> @comp.Location</p>
-                                        <p class="card-text mb-1 small">
-                                            <i class="bi bi-calendar-event me-1"></i>
-                                            @if (comp.StartTime.HasValue) {
-                                                <span>@comp.StartTime.Value.ToString("ddd, MMM d")</span>
-                                                <small class="text-muted"> (@comp.StartTime.Value.ToString("t") - @comp.EndTime?.ToString("t"))</small>
-                                            }
-                                        </p>
-                                        <p class="card-text small"><i class="bi bi-trophy-fill me-1"></i> @comp.NumTeam Teams</p>
+                        @* --- PANE 3: Competitions (Active/Past) --- *@
+                        <div class="tab-pane fade" id="competitions-pane" role="tabpanel" aria-labelledby="competitions-tab" tabindex="0">
+                            
+                             <ul class="nav nav-tabs nav-justified mb-3" id="competitionsSubTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="active-comps-tab" data-bs-toggle="tab" data-bs-target="#active-comps-pane" type="button" role="tab" aria-controls="active-comps-pane" aria-selected="true">Active</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="past-comps-tab" data-bs-toggle="tab" data-bs-target="#past-comps-pane" type="button" role="tab" aria-controls="past-comps-pane" aria-selected="false">Past</button>
+                                </li>
+                            </ul>
 
-                                        @* Status and Action Buttons *@
-                                        @if (comp.Status == ScheduleStatus.PendingSetup)
-                                        {
-                                            <span class="badge bg-warning text-dark align-self-start mb-2"><i class="bi bi-exclamation-triangle-fill me-1"></i> Pending Match Setup</span>
-                                            <div class="mt-auto pt-2 d-grid gap-2 d-sm-flex justify-content-sm-between"> @* Flex layout for buttons *@
-                                                <a asp-controller="Community" asp-action="SetupMatch" asp-route-id="@comp.ScheduleId" class="btn btn-sm btn-warning mb-1 mb-sm-0">Continue Setup</a>
-                                                <form asp-controller="Community" asp-action="Publish" asp-route-id="@comp.ScheduleId" method="post" onsubmit="return confirm('Publish this competition? Default format settings will be used if setup is incomplete.')" class="d-inline-block">
-                                                     @Html.AntiForgeryToken()
-                                                    <button type="submit" class="btn btn-sm btn-info w-100">Publish Now</button>
-                                                </form>
+                            <div class="tab-content" id="competitionsSubTabsContent">
+                                <div class="tab-pane fade show active" id="active-comps-pane" role="tabpanel" aria-labelledby="active-comps-tab" tabindex="0">
+                                    <div class="row row-cols-1 row-cols-md-2 g-4">
+                                        @if (!activeCompetitions.Any()) {
+                                            <p class="text-muted col-12">No active competitions scheduled.</p>
+                                        }
+                                        @foreach (var comp in activeCompetitions) {
+                                            <div class="col">
+                                                <div class="card h-100 shadow-sm">
+                                                    <div class="card-body d-flex flex-column">
+                                                        <h5 class="card-title">@comp.GameName</h5>
+                                                        <p class="card-text mb-1 small"><i class="bi bi-geo-alt-fill me-1"></i> @comp.Location</p>
+                                                        <p class="card-text mb-1 small">
+                                                            <i class="bi bi-calendar-event me-1"></i>
+                                                            @if (comp.StartTime.HasValue) {
+                                                                <span>@comp.StartTime.Value.ToString("ddd, MMM d")</span>
+                                                                <small class="text-muted"> (@comp.StartTime.Value.ToString("t") - @comp.EndTime?.ToString("t"))</small>
+                                                            }
+                                                        </p>
+                                                        <p class="card-text small"><i class="bi bi-trophy-fill me-1"></i> @comp.NumTeam Teams</p>
+
+                                                        @if (comp.Status == ScheduleStatus.PendingSetup)
+                                                        {
+                                                            <span class="badge bg-warning text-dark align-self-start mb-2"><i class="bi bi-exclamation-triangle-fill me-1"></i> Pending Match Setup</span>
+                                                            <div class="mt-auto pt-2 d-grid gap-2 d-sm-flex justify-content-sm-between">
+                                                                <a asp-controller="Community" asp-action="SetupMatch" asp-route-id="@comp.ScheduleId" class="btn btn-sm btn-warning mb-1 mb-sm-0">Continue Setup</a>
+                                                                <form asp-controller="Community" asp-action="Publish" asp-route-id="@comp.ScheduleId" method="post" onsubmit="return confirm('Publish this competition? Default format settings will be used if setup is incomplete.')" class="d-inline-block">
+                                                                     @Html.AntiForgeryToken()
+                                                                     <button type="submit" class="btn btn-sm btn-info w-100">Publish Now</button>
+                                                                </form>
+                                                             </div>
+                                                        }
+                                                        else // Active
+                                                        {
+                                                            <span class="badge bg-success align-self-start mb-2">@comp.Status?.ToString()</span>
+                                                             <div class="mt-auto pt-2">
+                                                                 <a asp-controller="Competition" asp-action="CompDetails" asp-route-id="@comp.ScheduleId" class="btn btn-sm btn-outline-primary w-100">View Competition</a>
+                                                             </div>
+                                                        }
+                                                    </div>
+                                                </div>
                                             </div>
                                         }
-                                        else // Active, Past, etc.
-                                        {
-                                            // Determine badge color based on status
-                                            string statusBadgeClass = "bg-secondary"; // Default
-                                            if (comp.Status == ScheduleStatus.Active) { statusBadgeClass = "bg-success"; }
-                                            else if (comp.Status == ScheduleStatus.Past) { statusBadgeClass = "bg-dark"; }
-                                            // Add more conditions if needed
-
-                                            <span class="badge @statusBadgeClass align-self-start mb-2">@comp.Status?.ToString()</span>
-                                             <div class="mt-auto pt-2">
-                                                 <a asp-controller="Competition" asp-action="CompDetails" asp-route-id="@comp.ScheduleId" class="btn btn-sm btn-outline-primary w-100">View Competition</a>
-                                             </div>
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="past-comps-pane" role="tabpanel" aria-labelledby="past-comps-tab" tabindex="0">
+                                    <div class="row row-cols-1 row-cols-md-2 g-4">
+                                        @if (!pastCompetitions.Any()) {
+                                            <p class="text-muted col-12">No past competitions found.</p>
                                         }
-                                     </div>
-                                 </div>
-                             </div>
-                         }
-                         @if (!Model.Any(s => s.ScheduleType == ScheduleType.Competition)) {
-                             <p class="text-muted">No competitions scheduled.</p>
-                         }
-                    </div>
+                                        @foreach (var comp in pastCompetitions) {
+                                            <div class="col">
+                                                <div class="card h-100 shadow-sm" style="opacity: 0.7;">
+                                                    <div class="card-body d-flex flex-column">
+                                                        <h5 class="card-title">@comp.GameName</h5>
+                                                        <p class="card-text mb-1 small"><i class="bi bi-geo-alt-fill me-1"></i> @comp.Location</p>
+                                                        <p class="card-text mb-1 small">
+                                                            <i class="bi bi-calendar-event me-1"></i>
+                                                            @if (comp.StartTime.HasValue) {
+                                                                <span>@comp.StartTime.Value.ToString("ddd, MMM d")</span>
+                                                            }
+                                                        </p>
+                                                        <p class="card-text small"><i class="bi bi-trophy-fill me-1"></i> @comp.NumTeam Teams</p>
+                                                        
+                                                        <span class="badge bg-dark align-self-start mb-2">@comp.Status?.ToString()</span>
+                                                        <div class="mt-auto pt-2">
+                                                            <a asp-controller="Competition" asp-action="CompDetails" asp-route-id="@comp.ScheduleId" class="btn btn-sm btn-outline-secondary w-100">View Competition</a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div> @* End Activity Sub-Tabs Content *@
 
                 </div> @* End Activity Tab Pane *@
 
@@ -139,24 +467,20 @@
                 <div class="tab-pane fade" id="chat-tab-pane" role="tabpanel" aria-labelledby="chat-tab" tabindex="0">
                     <h4>Chat</h4>
                     <p>Community chat feature coming soon.</p>
-                     @* Link to ChatController if implemented *@
-                     @* <a asp-controller="Chat" asp-action="Index">Go to Chat</a> *@
                 </div>
 
                 @* --- MEMBERS TAB PANE (Placeholder) --- *@
                  <div class="tab-pane fade" id="members-tab-pane" role="tabpanel" aria-labelledby="members-tab" tabindex="0">
-                    <h4>Members</h4>
+                     <h4>Members</h4>
                     <p>Community member list coming soon.</p>
-                     @* Add member listing logic here later *@
                 </div>
 
-            </div> @* End Tab Content *@
-
+            </div> @* End Main Tab Content *@
 
         </div> @* End Center Column *@
 
          @* --- Right Column (Placeholder) --- *@
-        <div class="col-lg-3 d-none d-lg-block"> @* Hide on smaller screens *@
+        <div class="col-lg-3 d-none d-lg-block">
              <div class="card sticky-top" style="top: 20px;">
                 <div class="card-body">
                     <h5 class="card-title">Announcements</h5>
@@ -168,19 +492,115 @@
     </div> @* End Row *@
 </div> @* End Container *@
 
+@* --- NEW/UPDATED: CSS Styles for Calendar --- *@
+<style>
+    .calendar-table {
+        border: 1px solid #dee2e6;
+    }
+
+    .calendar-day {
+        height: 120px; /* Taller cells */
+        vertical-align: top;
+        padding: 4px;
+        position: relative;
+        background-color: #fff;
+    }
+
+    .calendar-day.other-month {
+        background-color: #f8f9fa; /* Faded for non-month days */
+    }
+
+    .calendar-day.today {
+        border: 2px solid #0d6efd; 
+    }
+    
+    .day-number {
+        font-weight: bold;
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    
+    .today .day-number {
+        color: #0d6efd;
+    }
+
+    /* Wrapper for scrolling events if day cell overflows */
+    .cal-events-wrapper {
+        max-height: 90px; /* 120px cell - ~30px for number/padding */
+        overflow-y: auto;
+        margin-top: 4px;
+    }
+
+    /* Individual event item */
+    .cal-event {
+        display: block;
+        padding: 2px 5px;
+        margin-bottom: 3px;
+        border-radius: 4px;
+        color: #333; /* Darker text */
+        text-decoration: none;
+        font-size: 0.75rem; /* Small font */
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis; /* ... if too long */
+        border: 1px solid transparent;
+    }
+    
+    .cal-event:hover {
+        opacity: 0.8;
+    }
+
+    /* Green: One-Off */
+    .cal-event-oneoff {
+        background-color: #d1e7dd;
+        border-color: #a3cfbb;
+        color: #0a3622;
+    }
+    
+    /* Blue: Recurring */
+    .cal-event-recurring {
+        background-color: #cce5ff;
+        border-color: #9fcdff;
+        color: #052c65;
+    }
+    
+    /* Yellow: Competition */
+    .cal-event-comp {
+        background-color: #fff3cd;
+        border-color: #ffe69c;
+        color: #664d03;
+    }
+
+</style>
+
+
 @section Scripts {
     <script>
-        // Optional: Add JS if needed for dynamic loading or interactions later
-        // Example: Activate tab from URL hash if needed
-        // document.addEventListener('DOMContentLoaded', function() {
-        //     var hash = window.location.hash;
-        //     if (hash) {
-        //         var triggerEl = document.querySelector('#communityMainTabs button[data-bs-target="' + hash + '"]');
-        //         if (triggerEl) {
-        //             var tab = new bootstrap.Tab(triggerEl);
-        //             tab.show();
-        //         }
-        //     }
-        // });
+        // Optional: Activate tab from URL hash if needed
+        document.addEventListener('DOMContentLoaded', function() {
+            var hash = window.location.hash;
+            if (hash) {
+                // Try to activate main tabs
+                var triggerEl = document.querySelector('#communityMainTabs button[data-bs-target="' + hash + '"]');
+                if (triggerEl) {
+                    var tab = new bootstrap.Tab(triggerEl);
+                    tab.show();
+                }
+
+                // Try to activate activity sub-tabs
+                var subTriggerEl = document.querySelector('#activitySubTabs button[data-bs-target="' + hash + '"]');
+                if (subTriggerEl) {
+                    var subTab = new bootstrap.Tab(subTriggerEl);
+                    subTab.show();
+
+                    // Also ensure the parent 'Activity' tab is active
+                    var parentTabTrigger = document.querySelector('#activity-tab');
+                    if (parentTabTrigger) {
+                        var parentTab = new bootstrap.Tab(parentTabTrigger);
+                        parentTab.show();
+                    }
+                }
+            }
+        });
     </script>
 }
