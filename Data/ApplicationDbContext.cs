@@ -9,7 +9,7 @@ namespace FYP_QS_CODE.Data
             : base(options)
         {
         }
-
+        public DbSet<User> User { get; set; }
         public DbSet<Schedule> Schedules { get; set; }
         public DbSet<Competition> Competitions { get; set; }
 
