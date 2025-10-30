@@ -14,6 +14,11 @@ namespace FYP_QS_CODE.Models
         [Display(Name = "Auto-Create When")]
         [Required]
         public AutoCreateWhen AutoCreateWhen { get; set; } = AutoCreateWhen.B2d;
+
+        [Required(ErrorMessage = "Please select an end date for the recurrence.")]
+        [DataType(DataType.Date)]
+        [Display(Name = "Recur Until")]
+        public DateTime? RecurringEndDate { get; set; }
         
         [Display(Name = "Start Time")]
         [Required]

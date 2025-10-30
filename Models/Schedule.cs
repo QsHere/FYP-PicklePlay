@@ -11,6 +11,14 @@ namespace FYP_QS_CODE.Models
         [Column("schedule_id")]
         public int ScheduleId { get; set; }
 
+        // --- NEW: Link to the parent "Template" schedule ---
+        [Column("parentScheduleId")]
+        public int? ParentScheduleId { get; set; }
+        
+        // --- NEW: The date this recurrence series ends ---
+        [Column("recurringEndDate")]
+        public DateTime? RecurringEndDate { get; set; }
+
         [Column("gameName")]
         [StringLength(255)]
         public string? GameName { get; set; }

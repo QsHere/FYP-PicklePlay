@@ -10,16 +10,32 @@
         int ScheduleId,
         string GameName,
         DateTime StartTime,
-        ScheduleType ScheduleType)
+        ScheduleType ScheduleType,
+        int? ParentScheduleId)
     {
-        public string CssClass => ScheduleType switch
+        // Update the logic for CssClass
+        public string CssClass
         {
-            ScheduleType.OneOff => "cal-event-oneoff",
-            ScheduleType.Recurring => "cal-event-recurring",
-            ScheduleType.Competition => "cal-event-comp",
-            _ => ""
-        };
+            get
+            {
+                // If it has a parent, IT IS RECURRING (Blue)
+                if (ParentScheduleId.HasValue)
+                {
+                    return "cal-event-recurring"; 
+                }
+                
+                // Otherwise, use the schedule type
+                return ScheduleType switch
+                {
+                    ScheduleType.OneOff => "cal-event-oneoff", // (Green)
+                    ScheduleType.Recurring => "cal-event-recurring", // (Blue - for the template itself, if shown)
+                    ScheduleType.Competition => "cal-event-comp", // (Yellow)
+                    _ => ""
+                };
+            }
+        }
     }
+}
 }
 
 @{
@@ -79,55 +95,48 @@
     // --- Process all schedules from the Model ---
     foreach (var schedule in Model.Where(s => s.StartTime.HasValue))
     {
+        // We only care about schedules that are NOT children.
+        // Children will be processed by the 'Recurring' logic.
+        // ... (This logic is complex, let's simplify)
+
+        // --- NEW SIMPLIFIED LOGIC ---
+        // Just loop through all schedules. The new CssClass logic will handle colors.
+        
         switch (schedule.ScheduleType)
         {
-            // A: One-Off (Green)
             case ScheduleType.OneOff:
                 if (schedule.StartTime.Value.Year == displayYear && schedule.StartTime.Value.Month == displayMonth)
                 {
                     AddEvent(schedule.StartTime.Value.Day, new CalendarEvent(
-                        schedule.ScheduleId, schedule.GameName, schedule.StartTime.Value, schedule.ScheduleType.Value));
+                        schedule.ScheduleId, schedule.GameName, schedule.StartTime.Value, 
+                        schedule.ScheduleType.Value, schedule.ParentScheduleId)); // <-- Pass ParentId
                 }
                 break;
 
-            // B: Competition (Yellow) - Can span multiple days
             case ScheduleType.Competition:
-                var startDate = schedule.StartTime.Value;
+               var startDate = schedule.StartTime.Value;
                 var endDate = schedule.EndTime ?? startDate;
                 
-                // Loop from the start to the end of the competition
                 for (var date = startDate.Date; date <= endDate.Date; date = date.AddDays(1))
                 {
-                    // Only add days that are in the current viewing month
                     if (date.Year == displayYear && date.Month == displayMonth)
                     {
                         AddEvent(date.Day, new CalendarEvent(
-                            schedule.ScheduleId, schedule.GameName, schedule.StartTime.Value, schedule.ScheduleType.Value));
+                            schedule.ScheduleId, schedule.GameName, schedule.StartTime.Value, 
+                            schedule.ScheduleType.Value, schedule.ParentScheduleId)); // <-- Pass ParentId
                     }
                 }
                 break;
+            
+            // --- IMPORTANT ---
+            // We NO LONGER need the separate logic for "Recurring".
+            // The generated "OneOff" instances (with a ParentId)
+            // are all we need to show. They will be caught by the 'case ScheduleType.OneOff:'
+            // and the CssClass logic will color them blue.
         }
     }
     
-    // C: Recurring (Blue) - Check all days in this month
-    var recurringSchedules = Model.Where(s => s.ScheduleType == ScheduleType.Recurring &&
-                                               s.RecurringWeek.HasValue && s.RecurringWeek != RecurringWeek.None &&
-                                               s.StartTime.HasValue); // StartTime holds the *time*
-
-    for (int i = 1; i <= daysInMonth; i++)
-    {
-        var date = new DateTime(displayYear, displayMonth, i);
-        if (dayFlagMap.TryGetValue(date.DayOfWeek, out var dayFlag))
-        {
-            // Find all recurring schedules that run on this day of the week
-            var schedulesForThisDay = recurringSchedules.Where(s => s.RecurringWeek.Value.HasFlag(dayFlag));
-            foreach (var schedule in schedulesForThisDay)
-            {
-                AddEvent(i, new CalendarEvent(
-                    schedule.ScheduleId, schedule.GameName, schedule.StartTime.Value, schedule.ScheduleType.Value));
-            }
-        }
-    }
+    
 
 
     // --- 3. PREPARE LISTS FOR ACTIVE/PAST TABS (Same as before) ---

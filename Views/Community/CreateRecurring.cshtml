@@ -56,6 +56,14 @@
                 <input asp-for="StartTime" type="time" class="form-control"/>
                 <span asp-validation-for="StartTime" class="text-danger"></span>
             </div>
+            <div class="col-md-6">
+                    @* --- NEW FIELD --- *@
+                    <div class="mb-3">
+                        <label asp-for="RecurringEndDate" class="form-label"></label>
+                        <input asp-for="RecurringEndDate" class="form-control" type="date" />
+                        <span asp-validation-for="RecurringEndDate" class="text-danger"></span>
+                    </div>
+                </div>
             <div class="col-md-6 mb-3">
                 <label asp-for="Duration" class="form-label"></label>
                 <select asp-for="Duration" class="form-select" asp-items="Html.GetEnumSelectList<Duration>()"></select>

@@ -38,78 +38,164 @@ namespace FYP_QS_CODE.Controllers
             return View(new ScheduleRecurringViewModel());
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult CreateRecurring(ScheduleRecurringViewModel vm)
+        
+
+[HttpPost]
+[ValidateAntiForgeryToken]
+public IActionResult CreateRecurring(ScheduleRecurringViewModel vm)
+{
+    // --- Validation ---
+    if (vm.RecurringWeek == null || !vm.RecurringWeek.Any()) {
+        ModelState.AddModelError("RecurringWeek", "Please select at least one day.");
+    }
+
+    if (vm.RecurringEndDate.HasValue && vm.RecurringEndDate.Value < DateTime.Today) {
+        ModelState.AddModelError("RecurringEndDate", "The end date must be in the future.");
+    }
+
+    // Check if start time is in the future *for today's date*
+    RecurringWeek todayDayFlag = GetTodayDayFlag();
+    if (vm.RecurringWeek != null && vm.RecurringWeek.Contains(todayDayFlag))
+    {
+        var selectedDateTimeToday = DateTime.Today.Add(vm.StartTime.ToTimeSpan());
+        if (selectedDateTimeToday <= DateTime.Now)
         {
-            var selectedDateTime = DateTime.Today.Add(vm.StartTime.ToTimeSpan());
-            RecurringWeek todayDayFlag = RecurringWeek.None;
-             switch (DateTime.Today.DayOfWeek) { /* Map DayOfWeek to RecurringWeek flags */
-                 case DayOfWeek.Monday:    todayDayFlag = RecurringWeek.Mon; break;
-                 case DayOfWeek.Tuesday:   todayDayFlag = RecurringWeek.Tue; break;
-                 case DayOfWeek.Wednesday: todayDayFlag = RecurringWeek.Wed; break;
-                 case DayOfWeek.Thursday:  todayDayFlag = RecurringWeek.Thur; break;
-                 case DayOfWeek.Friday:    todayDayFlag = RecurringWeek.Fri; break;
-                 case DayOfWeek.Saturday:  todayDayFlag = RecurringWeek.Sat; break;
-                 case DayOfWeek.Sunday:    todayDayFlag = RecurringWeek.Sun; break;
-             }
-
-            if (vm.RecurringWeek != null && vm.RecurringWeek.Contains(todayDayFlag) && selectedDateTime <= DateTime.Now)
-            {
-                 ModelState.AddModelError("StartTime", "Please select a future time for today's recurring schedule.");
-            }
-             if (vm.RecurringWeek == null || !vm.RecurringWeek.Any()) {
-                ModelState.AddModelError("RecurringWeek", "Please select at least one day.");
-            }
-
-
-            if (!ModelState.IsValid)
-            {
-                return View(vm);
-            }
-
-            RecurringWeek combinedWeek = RecurringWeek.None;
-            if (vm.RecurringWeek != null && vm.RecurringWeek.Count > 0)
-            {
-                foreach (var day in vm.RecurringWeek)
-                {
-                    combinedWeek |= day;
-                }
-            }
-
-            var newSchedule = new Schedule
-            {
-                ScheduleType = Models.ScheduleType.Recurring,
-                RecurringWeek = combinedWeek,
-                AutoCreateWhen = vm.AutoCreateWhen,
-                StartTime = DateTime.Today.Add(vm.StartTime.ToTimeSpan()),
-                GameName = vm.GameName,
-                Description = vm.Description,
-                EventTag = vm.EventTag,
-                Location = vm.Location,
-                Duration = vm.Duration,
-                NumPlayer = vm.NumPlayer,
-                MinRankRestriction = vm.MinRankRestriction,
-                MaxRankRestriction = vm.MaxRankRestriction,
-                GenderRestriction = vm.GenderRestriction,
-                AgeGroupRestriction = vm.AgeGroupRestriction,
-                FeeType = vm.FeeType,
-                FeeAmount = (vm.FeeType == FeeType.AutoSplitTotal || vm.FeeType == FeeType.PerPerson) ? vm.FeeAmount : null,
-                Privacy = vm.Privacy,
-                GameFeature = vm.GameFeature,
-                CancellationFreeze = vm.CancellationFreeze,
-                HostRole = vm.HostRole
-            };
-
-            if (newSchedule.StartTime.HasValue && newSchedule.Duration.HasValue)
-            {
-                var durationTimeSpan = ScheduleHelper.GetTimeSpan(newSchedule.Duration.Value);
-                newSchedule.EndTime = newSchedule.StartTime.Value.Add(durationTimeSpan);
-            }
-
-            _scheduleRepository.Add(newSchedule);
-            return RedirectToAction("Index", "Community");
+             ModelState.AddModelError("StartTime", "Please select a future time if recurring on today's date.");
         }
+    }
+    
+    if (!ModelState.IsValid)
+    {
+        return View(vm);
+    }
+    
+    // --- 1. Create the Parent "Template" Schedule ---
+    
+    RecurringWeek combinedWeek = RecurringWeek.None;
+    foreach (var day in vm.RecurringWeek) { combinedWeek |= day; }
+
+    var parentSchedule = new Schedule
+    {
+        ScheduleType = Models.ScheduleType.Recurring, // This is the TEMPLATE
+        ParentScheduleId = null, // It is the parent
+        RecurringWeek = combinedWeek,
+        RecurringEndDate = vm.RecurringEndDate, // Store the end date
+        AutoCreateWhen = vm.AutoCreateWhen,
+        StartTime = DateTime.Today.Add(vm.StartTime.ToTimeSpan()), // Stores the TIME
+        EndTime = null, // EndTime will be on the instances
+        
+        // Copy all other details
+        GameName = vm.GameName,
+        Description = vm.Description,
+        EventTag = vm.EventTag,
+        Location = vm.Location,
+        Duration = vm.Duration,
+        NumPlayer = vm.NumPlayer,
+        MinRankRestriction = vm.MinRankRestriction,
+        MaxRankRestriction = vm.MaxRankRestriction,
+        GenderRestriction = vm.GenderRestriction,
+        AgeGroupRestriction = vm.AgeGroupRestriction,
+        FeeType = vm.FeeType,
+        FeeAmount = (vm.FeeType == FeeType.AutoSplitTotal || vm.FeeType == FeeType.PerPerson) ? vm.FeeAmount : null,
+        Privacy = vm.Privacy,
+        GameFeature = vm.GameFeature,
+        CancellationFreeze = vm.CancellationFreeze,
+        HostRole = vm.HostRole,
+        Status = ScheduleStatus.Active // The parent template is 'Active'
+    };
+
+    // --- 2. Save Parent to get its ID ---
+    _scheduleRepository.Add(parentSchedule); 
+    // ^ Assumes your Add method updates the object with the new ScheduleId.
+    // If not, you may need to use _context.Add() and _context.SaveChanges()
+    
+    
+    // --- 3. Generate and Save all Child "Instance" Schedules ---
+    var durationTimeSpan = ScheduleHelper.GetTimeSpan(vm.Duration);
+    var dayFlagMap = BuildDayFlagMap();
+
+    // Loop from today until the user's selected end date
+    for (var date = DateTime.Today; date <= vm.RecurringEndDate.Value; date = date.AddDays(1))
+    {
+        // Check if this day (e.g., "Tuesday") is one of the days the user selected
+        if (dayFlagMap.TryGetValue(date.DayOfWeek, out var dayFlag) && vm.RecurringWeek.Contains(dayFlag))
+        {
+            var instanceStartTime = date.Add(vm.StartTime.ToTimeSpan());
+
+            // Skip if this first instance is in the past (already validated, but good check)
+            if (instanceStartTime <= DateTime.Now) continue; 
+            
+            var instanceSchedule = new Schedule
+            {
+                ScheduleType = Models.ScheduleType.OneOff, // This is an INSTANCE
+                ParentScheduleId = parentSchedule.ScheduleId, // Link to the parent
+                
+                // Set the exact date and time
+                StartTime = instanceStartTime,
+                EndTime = instanceStartTime.Add(durationTimeSpan),
+                
+                // Copy details from parent
+                GameName = parentSchedule.GameName,
+                Description = parentSchedule.Description,
+                EventTag = parentSchedule.EventTag,
+                Location = parentSchedule.Location,
+                Duration = parentSchedule.Duration,
+                NumPlayer = parentSchedule.NumPlayer,
+                MinRankRestriction = parentSchedule.MinRankRestriction,
+                MaxRankRestriction = parentSchedule.MaxRankRestriction,
+                GenderRestriction = parentSchedule.GenderRestriction,
+                AgeGroupRestriction = parentSchedule.AgeGroupRestriction,
+                FeeType = parentSchedule.FeeType,
+                FeeAmount = parentSchedule.FeeAmount,
+                Privacy = parentSchedule.Privacy,
+                GameFeature = parentSchedule.GameFeature,
+                CancellationFreeze = parentSchedule.CancellationFreeze,
+                HostRole = parentSchedule.HostRole,
+                Status = ScheduleStatus.Active, // Or ScheduleStatus.Null
+                
+                // Null out the recurring fields
+                RecurringWeek = null,
+                RecurringEndDate = null,
+                AutoCreateWhen = null
+            };
+            
+            _scheduleRepository.Add(instanceSchedule);
+        }
+    }
+
+    return RedirectToAction("Index", "Community");
+}
+
+// Helper function to get today's flag
+private RecurringWeek GetTodayDayFlag()
+{
+    switch (DateTime.Today.DayOfWeek)
+    {
+         case DayOfWeek.Monday:    return RecurringWeek.Mon;
+         case DayOfWeek.Tuesday:   return RecurringWeek.Tue;
+         case DayOfWeek.Wednesday: return RecurringWeek.Wed;
+         case DayOfWeek.Thursday:  return RecurringWeek.Thur;
+         case DayOfWeek.Friday:    return RecurringWeek.Fri;
+         case DayOfWeek.Saturday:  return RecurringWeek.Sat;
+         case DayOfWeek.Sunday:    return RecurringWeek.Sun;
+         default: return RecurringWeek.None;
+    }
+}
+
+// Helper to map .NET DayOfWeek to your RecurringWeek enum
+private Dictionary<DayOfWeek, RecurringWeek> BuildDayFlagMap()
+{
+    return new Dictionary<DayOfWeek, RecurringWeek>
+    {
+        [DayOfWeek.Monday] = RecurringWeek.Mon,
+        [DayOfWeek.Tuesday] = RecurringWeek.Tue,
+        [DayOfWeek.Wednesday] = RecurringWeek.Wed,
+        [DayOfWeek.Thursday] = RecurringWeek.Thur,
+        [DayOfWeek.Friday] = RecurringWeek.Fri,
+        [DayOfWeek.Saturday] = RecurringWeek.Sat,
+        [DayOfWeek.Sunday] = RecurringWeek.Sun
+    };
+}
 
         // --- CREATE ONE-OFF ---
         [HttpGet]
