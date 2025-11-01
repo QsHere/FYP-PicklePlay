@@ -25,24 +25,31 @@
                  <button class="btn btn-primary"><i class="bi bi-person-plus"></i> Register Team</button>
              }
 
-            @* --- UPDATED DROPDOWN --- *@
+           @* --- UPDATED DROPDOWN --- *@
             <div class="dropdown d-inline-block">
                  <button class="btn btn-secondary dropdown-toggle" type="button" id="compActionsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                     Actions
                 </button>
                  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="compActionsDropdown">
                      
-                    @* 1. Edit Link *@
+                    @* 1. Edit Details Link *@
                     @if (Model.Status == ScheduleStatus.PendingSetup) {
-                        <li><a class="dropdown-item" asp-action="EditCompetition" asp-controller="Community" asp-route-id="@Model.ScheduleId"><i class="bi bi-pencil-fill me-2"></i> Edit Draft</a></li>
+                        <li><a class="dropdown-item" asp-action="EditCompetition" asp-controller="Community" asp-route-id="@Model.ScheduleId"><i class="bi bi-pencil-fill me-2"></i> Edit Draft Details</a></li>
                     } else {
                         <li><a class="dropdown-item" asp-action="EditCompetition" asp-controller="Community" asp-route-id="@Model.ScheduleId"><i class="bi bi-pencil-fill me-2"></i> Edit Details</a></li>
                     }
 
+                    @* 2. NEW: Edit Setup Match Link *@
+                    <li>
+                        <a class="dropdown-item" asp-action="SetupMatch" asp-controller="Community" asp-route-id="@Model.ScheduleId">
+                            <i class="bi bi-gear-fill me-2"></i> Edit Format & Rules
+                        </a>
+                    </li>
+
                      <li><a class="dropdown-item disabled" href="#">Manage Teams (Future)</a></li>
                      <li><hr class="dropdown-divider"></li>
 
-                    @* 2. Delete Link *@
+                    @* 3. Delete Link (No changes here) *@
                     @if (Model.Status == ScheduleStatus.PendingSetup) {
                         <li><a class="dropdown-item text-danger" asp-action="Delete" asp-controller="Schedule" asp-route-id="@Model.ScheduleId"><i class="bi bi-trash-fill me-2"></i> Delete Draft</a></li>
                     } else {
