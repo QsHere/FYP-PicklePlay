@@ -33,6 +33,14 @@
       "PackagePath": "staticwebassets\\img\\logoV4.png"
     },
     {
+      "Id": "C:\\Users\\xkyh0\\Downloads\\FYP_QS_CODEv2\\FYP_QS_CODE\\wwwroot\\img\\posters\\bc7d9409-b027-4820-a51d-a04bdb0c79ea_landscape_poster.jpg",
+      "PackagePath": "staticwebassets\\img\\posters\\bc7d9409-b027-4820-a51d-a04bdb0c79ea_landscape_poster.jpg"
+    },
+    {
+      "Id": "C:\\Users\\xkyh0\\Downloads\\FYP_QS_CODEv2\\FYP_QS_CODE\\wwwroot\\img\\posters\\fdcc4ae8-afa0-442b-927b-fca5aad11266_verticle_poster2.webp",
+      "PackagePath": "staticwebassets\\img\\posters\\fdcc4ae8-afa0-442b-927b-fca5aad11266_verticle_poster2.webp"
+    },
+    {
       "Id": "C:\\Users\\xkyh0\\Downloads\\FYP_QS_CODEv2\\FYP_QS_CODE\\wwwroot\\js\\site.js",
       "PackagePath": "staticwebassets\\js\\site.js"
     },

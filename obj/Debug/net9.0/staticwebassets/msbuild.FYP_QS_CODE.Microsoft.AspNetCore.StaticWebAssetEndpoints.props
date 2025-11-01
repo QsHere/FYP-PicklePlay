@@ -96,6 +96,30 @@
       <EndpointProperties><![CDATA[[{"Name":"fingerprint","Value":"r1h9o4maj6"},{"Name":"integrity","Value":"sha256-j0Z9MZ8vIuczDxnFdJxZkBT7dMG2QMJNOhp3C0/7fmo="},{"Name":"label","Value":"_content/FYP_QS_CODE/img/logoV4.png"}]]]></EndpointProperties>
       <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=31536000, immutable"},{"Name":"Content-Length","Value":"641385"},{"Name":"Content-Type","Value":"image/png"},{"Name":"ETag","Value":"\u0022j0Z9MZ8vIuczDxnFdJxZkBT7dMG2QMJNOhp3C0/7fmo=\u0022"},{"Name":"Last-Modified","Value":"Sun, 24 Aug 2025 19:46:40 GMT"}]]]></ResponseHeaders>
     </StaticWebAssetEndpoint>
+    <StaticWebAssetEndpoint Include="_content/FYP_QS_CODE/img/posters/bc7d9409-b027-4820-a51d-a04bdb0c79ea_landscape_poster.ibdu2adil6.jpg">
+      <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\img\posters\bc7d9409-b027-4820-a51d-a04bdb0c79ea_landscape_poster.jpg'))</AssetFile>
+      <Selectors><![CDATA[[]]]></Selectors>
+      <EndpointProperties><![CDATA[[{"Name":"fingerprint","Value":"ibdu2adil6"},{"Name":"integrity","Value":"sha256-Emcbj3W7VES7KG5WA64XIi/OgcqzN7In0lEYMYiVo2Q="},{"Name":"label","Value":"_content/FYP_QS_CODE/img/posters/bc7d9409-b027-4820-a51d-a04bdb0c79ea_landscape_poster.jpg"}]]]></EndpointProperties>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=31536000, immutable"},{"Name":"Content-Length","Value":"76215"},{"Name":"Content-Type","Value":"image/jpeg"},{"Name":"ETag","Value":"\u0022Emcbj3W7VES7KG5WA64XIi/OgcqzN7In0lEYMYiVo2Q=\u0022"},{"Name":"Last-Modified","Value":"Sat, 01 Nov 2025 13:38:50 GMT"}]]]></ResponseHeaders>
+    </StaticWebAssetEndpoint>
+    <StaticWebAssetEndpoint Include="_content/FYP_QS_CODE/img/posters/bc7d9409-b027-4820-a51d-a04bdb0c79ea_landscape_poster.jpg">
+      <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\img\posters\bc7d9409-b027-4820-a51d-a04bdb0c79ea_landscape_poster.jpg'))</AssetFile>
+      <Selectors><![CDATA[[]]]></Selectors>
+      <EndpointProperties><![CDATA[[{"Name":"integrity","Value":"sha256-Emcbj3W7VES7KG5WA64XIi/OgcqzN7In0lEYMYiVo2Q="}]]]></EndpointProperties>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=3600, must-revalidate"},{"Name":"Content-Length","Value":"76215"},{"Name":"Content-Type","Value":"image/jpeg"},{"Name":"ETag","Value":"\u0022Emcbj3W7VES7KG5WA64XIi/OgcqzN7In0lEYMYiVo2Q=\u0022"},{"Name":"Last-Modified","Value":"Sat, 01 Nov 2025 13:38:50 GMT"}]]]></ResponseHeaders>
+    </StaticWebAssetEndpoint>
+    <StaticWebAssetEndpoint Include="_content/FYP_QS_CODE/img/posters/fdcc4ae8-afa0-442b-927b-fca5aad11266_verticle_poster2.gr205i4was.webp">
+      <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\img\posters\fdcc4ae8-afa0-442b-927b-fca5aad11266_verticle_poster2.webp'))</AssetFile>
+      <Selectors><![CDATA[[]]]></Selectors>
+      <EndpointProperties><![CDATA[[{"Name":"fingerprint","Value":"gr205i4was"},{"Name":"integrity","Value":"sha256-/Pp9UL/EntFtUljHx7jzQvA\u002B7G1QXPeiB3I4b5FIH/c="},{"Name":"label","Value":"_content/FYP_QS_CODE/img/posters/fdcc4ae8-afa0-442b-927b-fca5aad11266_verticle_poster2.webp"}]]]></EndpointProperties>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=31536000, immutable"},{"Name":"Content-Length","Value":"27536"},{"Name":"Content-Type","Value":"image/webp"},{"Name":"ETag","Value":"\u0022/Pp9UL/EntFtUljHx7jzQvA\u002B7G1QXPeiB3I4b5FIH/c=\u0022"},{"Name":"Last-Modified","Value":"Sat, 01 Nov 2025 13:28:12 GMT"}]]]></ResponseHeaders>
+    </StaticWebAssetEndpoint>
+    <StaticWebAssetEndpoint Include="_content/FYP_QS_CODE/img/posters/fdcc4ae8-afa0-442b-927b-fca5aad11266_verticle_poster2.webp">
+      <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\img\posters\fdcc4ae8-afa0-442b-927b-fca5aad11266_verticle_poster2.webp'))</AssetFile>
+      <Selectors><![CDATA[[]]]></Selectors>
+      <EndpointProperties><![CDATA[[{"Name":"integrity","Value":"sha256-/Pp9UL/EntFtUljHx7jzQvA\u002B7G1QXPeiB3I4b5FIH/c="}]]]></EndpointProperties>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=3600, must-revalidate"},{"Name":"Content-Length","Value":"27536"},{"Name":"Content-Type","Value":"image/webp"},{"Name":"ETag","Value":"\u0022/Pp9UL/EntFtUljHx7jzQvA\u002B7G1QXPeiB3I4b5FIH/c=\u0022"},{"Name":"Last-Modified","Value":"Sat, 01 Nov 2025 13:28:12 GMT"}]]]></ResponseHeaders>
+    </StaticWebAssetEndpoint>
     <StaticWebAssetEndpoint Include="_content/FYP_QS_CODE/js/site.js">
       <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\site.js'))</AssetFile>
       <Selectors><![CDATA[[]]]></Selectors>

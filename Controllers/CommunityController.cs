@@ -342,87 +342,90 @@ namespace FYP_QS_CODE.Controllers
         }
 
         // POST: /Community/SetupMatch/{id}
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult SetupMatch(int id, CompetitionSetupViewModel vm)
+[HttpPost]
+[ValidateAntiForgeryToken]
+public IActionResult SetupMatch(int id, CompetitionSetupViewModel vm)
+{
+    if (id != vm.ScheduleId) { return BadRequest("ID mismatch."); }
+
+    if (vm.Format == CompetitionFormat.PoolPlay)
+    {
+        if (vm.NumPool <= 0) { ModelState.AddModelError("NumPool", "Number of pools must be positive."); }
+        if (vm.WinnersPerPool <= 0) { ModelState.AddModelError("WinnersPerPool", "Winners per pool must be positive."); }
+    }
+
+    if (!ModelState.IsValid)
+    {
+        return View(vm);
+    }
+
+    var scheduleToUpdate = _context.Schedules
+                                 .Include(s => s.Competition)
+                                 .FirstOrDefault(s => s.ScheduleId == id);
+
+    if (scheduleToUpdate == null || scheduleToUpdate.Competition == null)
+    {
+        return NotFound("Competition or schedule not found for update.");
+    }
+
+    scheduleToUpdate.Competition.Format = vm.Format;
+
+    if (vm.Format == CompetitionFormat.PoolPlay)
+    {
+        scheduleToUpdate.Competition.NumPool = vm.NumPool;
+        scheduleToUpdate.Competition.WinnersPerPool = vm.WinnersPerPool;
+        scheduleToUpdate.Competition.StandingCalculation = vm.StandingCalculation;
+        if (vm.StandingCalculation == StandingCalculation.WinLossPoints)
         {
-            if (id != vm.ScheduleId) { return BadRequest("ID mismatch."); }
-
-            if (vm.Format == CompetitionFormat.PoolPlay)
-            {
-                if (vm.NumPool <= 0) { ModelState.AddModelError("NumPool", "Number of pools must be positive."); }
-                if (vm.WinnersPerPool <= 0) { ModelState.AddModelError("WinnersPerPool", "Winners per pool must be positive."); }
-            }
-
-            if (!ModelState.IsValid)
-            {
-                return View(vm);
-            }
-
-            var scheduleToUpdate = _context.Schedules
-                                         .Include(s => s.Competition)
-                                         .FirstOrDefault(s => s.ScheduleId == id);
-
-            if (scheduleToUpdate == null || scheduleToUpdate.Competition == null)
-            {
-                return NotFound("Competition or schedule not found for update.");
-            }
-
-            scheduleToUpdate.Competition.Format = vm.Format;
-
-            if (vm.Format == CompetitionFormat.PoolPlay)
-            {
-                scheduleToUpdate.Competition.NumPool = vm.NumPool;
-                scheduleToUpdate.Competition.WinnersPerPool = vm.WinnersPerPool;
-                scheduleToUpdate.Competition.StandingCalculation = vm.StandingCalculation;
-                if (vm.StandingCalculation == StandingCalculation.WinLossPoints)
-                {
-                    scheduleToUpdate.Competition.StandardWin = vm.StandardWin;
-                    scheduleToUpdate.Competition.StandardLoss = vm.StandardLoss;
-                    scheduleToUpdate.Competition.TieBreakWin = vm.TieBreakWin;
-                    scheduleToUpdate.Competition.TieBreakLoss = vm.TieBreakLoss;
-                    scheduleToUpdate.Competition.Draw = vm.Draw;
-                }
-                scheduleToUpdate.Competition.ThirdPlaceMatch = true; 
-                scheduleToUpdate.Competition.DoublePool = false;   
-                scheduleToUpdate.Competition.MatchRule = null; 
-
-            }
-            else if (vm.Format == CompetitionFormat.Elimination)
-            {
-                scheduleToUpdate.Competition.ThirdPlaceMatch = vm.ThirdPlaceMatch;
-                scheduleToUpdate.Competition.MatchRule = vm.MatchRule;
-                scheduleToUpdate.Competition.NumPool = 4; 
-                scheduleToUpdate.Competition.DoublePool = false; 
-            }
-            else if (vm.Format == CompetitionFormat.RoundRobin)
-            {
-                scheduleToUpdate.Competition.DoublePool = vm.DoublePool;
-                scheduleToUpdate.Competition.MatchRule = vm.MatchRule;
-                scheduleToUpdate.Competition.NumPool = 4; 
-                scheduleToUpdate.Competition.ThirdPlaceMatch = true; 
-            }
-
-            scheduleToUpdate.Status = ScheduleStatus.Active;
-
-            try
-            {
-                _context.SaveChanges(); 
-
-                TempData["SuccessMessage"] = "Competition setup saved successfully!";
-                return RedirectToAction("Details", "Schedule", new { id = scheduleToUpdate.ScheduleId });
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                ModelState.AddModelError("", "The record you attempted to edit was modified by another user. Please reload and try again.");
-            }
-            catch (Exception ex)
-            {
-                ModelState.AddModelError("", $"An error occurred saving the setup: {ex.Message}");
-            }
-
-            return View(vm);
+            scheduleToUpdate.Competition.StandardWin = vm.StandardWin;
+            scheduleToUpdate.Competition.StandardLoss = vm.StandardLoss;
+            scheduleToUpdate.Competition.TieBreakWin = vm.TieBreakWin;
+            scheduleToUpdate.Competition.TieBreakLoss = vm.TieBreakLoss;
+            scheduleToUpdate.Competition.Draw = vm.Draw;
         }
+        scheduleToUpdate.Competition.ThirdPlaceMatch = true; 
+        scheduleToUpdate.Competition.DoublePool = false;   
+        scheduleToUpdate.Competition.MatchRule = null; 
+
+    }
+    else if (vm.Format == CompetitionFormat.Elimination)
+    {
+        scheduleToUpdate.Competition.ThirdPlaceMatch = vm.ThirdPlaceMatch;
+        scheduleToUpdate.Competition.MatchRule = vm.MatchRule;
+        scheduleToUpdate.Competition.NumPool = 4; 
+        scheduleToUpdate.Competition.DoublePool = false; 
+    }
+    else if (vm.Format == CompetitionFormat.RoundRobin)
+    {
+        scheduleToUpdate.Competition.DoublePool = vm.DoublePool;
+        scheduleToUpdate.Competition.MatchRule = vm.MatchRule;
+        scheduleToUpdate.Competition.NumPool = 4; 
+        scheduleToUpdate.Competition.ThirdPlaceMatch = true; 
+    }
+
+    scheduleToUpdate.Status = ScheduleStatus.Active;
+
+    try
+    {
+        _context.SaveChanges(); 
+
+        TempData["SuccessMessage"] = "Competition setup saved successfully!";
+        
+        // --- THIS IS THE FIX ---
+        // Changed "Details", "Schedule" to "CompDetails", "Competition"
+        return RedirectToAction("CompDetails", "Competition", new { id = scheduleToUpdate.ScheduleId });
+    }
+    catch (DbUpdateConcurrencyException)
+    {
+        ModelState.AddModelError("", "The record you attempted to edit was modified by another user. Please reload and try again.");
+    }
+    catch (Exception ex)
+    {
+        ModelState.AddModelError("", $"An error occurred saving the setup: {ex.Message}");
+    }
+
+    return View(vm);
+}
 
         // ------------------------
         

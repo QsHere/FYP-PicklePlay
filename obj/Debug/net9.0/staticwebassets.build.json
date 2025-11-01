@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "oFxHRmhgSLeRviwu2ItruFcNnunzrAHVcatJ+/2q1nI=",
+  "Hash": "3hIi/WRYYLbfG/l7RZEQEt/hPW7MGrAs9kQ4LVh6hJg=",
   "Source": "FYP_QS_CODE",
   "BasePath": "_content/FYP_QS_CODE",
   "Mode": "Default",
@@ -1548,6 +1548,48 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\img\\logoV4.png"
+    },
+    {
+      "Identity": "C:\\Users\\xkyh0\\Downloads\\FYP_QS_CODEv2\\FYP_QS_CODE\\wwwroot\\img\\posters\\bc7d9409-b027-4820-a51d-a04bdb0c79ea_landscape_poster.jpg",
+      "SourceId": "FYP_QS_CODE",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\xkyh0\\Downloads\\FYP_QS_CODEv2\\FYP_QS_CODE\\wwwroot\\",
+      "BasePath": "_content/FYP_QS_CODE",
+      "RelativePath": "img/posters/bc7d9409-b027-4820-a51d-a04bdb0c79ea_landscape_poster#[.{fingerprint}]?.jpg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "ibdu2adil6",
+      "Integrity": "Emcbj3W7VES7KG5WA64XIi/OgcqzN7In0lEYMYiVo2Q=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\img\\posters\\bc7d9409-b027-4820-a51d-a04bdb0c79ea_landscape_poster.jpg"
+    },
+    {
+      "Identity": "C:\\Users\\xkyh0\\Downloads\\FYP_QS_CODEv2\\FYP_QS_CODE\\wwwroot\\img\\posters\\fdcc4ae8-afa0-442b-927b-fca5aad11266_verticle_poster2.webp",
+      "SourceId": "FYP_QS_CODE",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\xkyh0\\Downloads\\FYP_QS_CODEv2\\FYP_QS_CODE\\wwwroot\\",
+      "BasePath": "_content/FYP_QS_CODE",
+      "RelativePath": "img/posters/fdcc4ae8-afa0-442b-927b-fca5aad11266_verticle_poster2#[.{fingerprint}]?.webp",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "gr205i4was",
+      "Integrity": "/Pp9UL/EntFtUljHx7jzQvA+7G1QXPeiB3I4b5FIH/c=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\img\\posters\\fdcc4ae8-afa0-442b-927b-fca5aad11266_verticle_poster2.webp"
     },
     {
       "Identity": "C:\\Users\\xkyh0\\Downloads\\FYP_QS_CODEv2\\FYP_QS_CODE\\wwwroot\\js\\site.js",
@@ -4431,6 +4473,170 @@
         {
           "Name": "integrity",
           "Value": "sha256-j0Z9MZ8vIuczDxnFdJxZkBT7dMG2QMJNOhp3C0/7fmo="
+        }
+      ]
+    },
+    {
+      "Route": "img/posters/bc7d9409-b027-4820-a51d-a04bdb0c79ea_landscape_poster.ibdu2adil6.jpg",
+      "AssetFile": "C:\\Users\\xkyh0\\Downloads\\FYP_QS_CODEv2\\FYP_QS_CODE\\wwwroot\\img\\posters\\bc7d9409-b027-4820-a51d-a04bdb0c79ea_landscape_poster.jpg",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "76215"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/jpeg"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"Emcbj3W7VES7KG5WA64XIi/OgcqzN7In0lEYMYiVo2Q=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sat, 01 Nov 2025 13:38:50 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "ibdu2adil6"
+        },
+        {
+          "Name": "label",
+          "Value": "img/posters/bc7d9409-b027-4820-a51d-a04bdb0c79ea_landscape_poster.jpg"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-Emcbj3W7VES7KG5WA64XIi/OgcqzN7In0lEYMYiVo2Q="
+        }
+      ]
+    },
+    {
+      "Route": "img/posters/bc7d9409-b027-4820-a51d-a04bdb0c79ea_landscape_poster.jpg",
+      "AssetFile": "C:\\Users\\xkyh0\\Downloads\\FYP_QS_CODEv2\\FYP_QS_CODE\\wwwroot\\img\\posters\\bc7d9409-b027-4820-a51d-a04bdb0c79ea_landscape_poster.jpg",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "76215"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/jpeg"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"Emcbj3W7VES7KG5WA64XIi/OgcqzN7In0lEYMYiVo2Q=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sat, 01 Nov 2025 13:38:50 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=3600, must-revalidate"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-Emcbj3W7VES7KG5WA64XIi/OgcqzN7In0lEYMYiVo2Q="
+        }
+      ]
+    },
+    {
+      "Route": "img/posters/fdcc4ae8-afa0-442b-927b-fca5aad11266_verticle_poster2.gr205i4was.webp",
+      "AssetFile": "C:\\Users\\xkyh0\\Downloads\\FYP_QS_CODEv2\\FYP_QS_CODE\\wwwroot\\img\\posters\\fdcc4ae8-afa0-442b-927b-fca5aad11266_verticle_poster2.webp",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "27536"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/webp"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"/Pp9UL/EntFtUljHx7jzQvA+7G1QXPeiB3I4b5FIH/c=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sat, 01 Nov 2025 13:28:12 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "gr205i4was"
+        },
+        {
+          "Name": "label",
+          "Value": "img/posters/fdcc4ae8-afa0-442b-927b-fca5aad11266_verticle_poster2.webp"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-/Pp9UL/EntFtUljHx7jzQvA+7G1QXPeiB3I4b5FIH/c="
+        }
+      ]
+    },
+    {
+      "Route": "img/posters/fdcc4ae8-afa0-442b-927b-fca5aad11266_verticle_poster2.webp",
+      "AssetFile": "C:\\Users\\xkyh0\\Downloads\\FYP_QS_CODEv2\\FYP_QS_CODE\\wwwroot\\img\\posters\\fdcc4ae8-afa0-442b-927b-fca5aad11266_verticle_poster2.webp",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "27536"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/webp"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"/Pp9UL/EntFtUljHx7jzQvA+7G1QXPeiB3I4b5FIH/c=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sat, 01 Nov 2025 13:28:12 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=3600, must-revalidate"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-/Pp9UL/EntFtUljHx7jzQvA+7G1QXPeiB3I4b5FIH/c="
         }
       ]
     },
