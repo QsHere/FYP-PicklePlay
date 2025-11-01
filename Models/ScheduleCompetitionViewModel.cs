@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 
 namespace FYP_QS_CODE.Models
 {
@@ -79,7 +80,9 @@ namespace FYP_QS_CODE.Models
         [Required]
         public CancellationFreeze CancellationFreeze { get; set; } = CancellationFreeze.B24hr;
 
-      
+        [Display(Name = "Competition Poster/Banner")]
+        public IFormFile? PosterImage { get; set; }
+
 
     }
 }

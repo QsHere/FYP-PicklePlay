@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FYP_QS_CODE")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2ad2bbdc4808d8e653c098a724d04c5888c72a89")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1a74f4702e66ecc0548b1db17e25ca78da1a9643")]
 [assembly: System.Reflection.AssemblyProductAttribute("FYP_QS_CODE")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FYP_QS_CODE")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

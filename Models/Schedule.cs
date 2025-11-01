@@ -106,6 +106,10 @@ namespace FYP_QS_CODE.Models
 
         [Column("earlyBirdClose")]
         public DateTime? EarlyBirdClose { get; set; }
+        
+        [Column("competitionImageUrl")]
+        [StringLength(512)] // Max path length
+        public string? CompetitionImageUrl { get; set; }
 
         // --- ADD NAVIGATION PROPERTY ---
         // This will hold the related Competition data if ScheduleType is Competition

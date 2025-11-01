@@ -10,7 +10,7 @@
         <button type="button" class="btn btn-outline-secondary" onclick="confirmExit()">Back</button>
     </div>
 
-    <form asp-action="CreateCompetition" method="post">
+    <form asp-action="CreateCompetition" method="post" enctype="multipart/form-data">
         @Html.AntiForgeryToken()
         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
@@ -21,7 +21,13 @@
             <input asp-for="GameName" type="text" maxlength="100" class="form-control"/>
             <span asp-validation-for="GameName" class="text-danger"></span>
         </div>
-        @* REMOVED Event Tag Select *@
+        
+        <div class="mb-3">
+                <label asp-for="PosterImage" class="form-label"></label>
+                <input asp-for="PosterImage" class="form-control" type="file" accept="image/*" />
+                <span asp-validation-for="PosterImage" class="text-danger"></span>
+            </div>
+
          <div class="mb-3">
             <label asp-for="Description" class="form-label"></label>
             <textarea asp-for="Description" class="form-control" rows="3"></textarea>
@@ -147,7 +153,9 @@
          </div>
 
 
-        <button type="submit" class="btn btn-success w-100 py-2 mt-3">Create & Setup Matches</button>
+        <div class="mb-3 mt-4">
+        <button type="submit" class="btn btn-primary btn-lg">Create & Continue to Setup</button>
+    </div>
     </form>
 </div>
 
