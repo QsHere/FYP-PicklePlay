@@ -208,18 +208,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 startTimeInputOneOff.min = minDateTimeLocal;
             }
 
-            // Find the time input (for CreateRecurring)
-            const startTimeInputRecurring = document.getElementById("StartTime"); // Assuming same ID
-            if (startTimeInputRecurring && startTimeInputRecurring.type === 'time') {
-                 // For recurring, we just prevent past times on the current day,
-                 // but the day itself is handled by the DayOfWeek selection.
-                 // If you need more complex logic (e.g., prevent selecting today if time has passed),
-                 // it gets more involved. This basic check handles the time input itself.
-                
-                // Note: Setting 'min' on time input might not prevent selection if the *date* is in the future.
-                // Server-side validation is still important.
-                // This improves the UX slightly.
-                 startTimeInputRecurring.min = minTime; 
             }
         });
     </script>

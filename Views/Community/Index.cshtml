@@ -2,9 +2,7 @@
 @using FYP_QS_CODE.Models
 @using System.Globalization
 
-@* Helper record to store formatted calendar event info.
-  This is defined in @functions so it can be used in the C# block and the HTML.
-*@
+
 @functions {
     public record CalendarEvent(
         int ScheduleId,
@@ -36,7 +34,7 @@
         }
     }
 }
-}
+
 
 @{
     ViewData["Title"] = "Community Hub";

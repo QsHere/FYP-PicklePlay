@@ -52,17 +52,7 @@ public IActionResult CreateRecurring(ScheduleRecurringViewModel vm)
     if (vm.RecurringEndDate.HasValue && vm.RecurringEndDate.Value < DateTime.Today) {
         ModelState.AddModelError("RecurringEndDate", "The end date must be in the future.");
     }
-
-    // Check if start time is in the future *for today's date*
-    RecurringWeek todayDayFlag = GetTodayDayFlag();
-    if (vm.RecurringWeek != null && vm.RecurringWeek.Contains(todayDayFlag))
-    {
-        var selectedDateTimeToday = DateTime.Today.Add(vm.StartTime.ToTimeSpan());
-        if (selectedDateTimeToday <= DateTime.Now)
-        {
-             ModelState.AddModelError("StartTime", "Please select a future time if recurring on today's date.");
-        }
-    }
+    
     
     if (!ModelState.IsValid)
     {
@@ -106,8 +96,6 @@ public IActionResult CreateRecurring(ScheduleRecurringViewModel vm)
 
     // --- 2. Save Parent to get its ID ---
     _scheduleRepository.Add(parentSchedule); 
-    // ^ Assumes your Add method updates the object with the new ScheduleId.
-    // If not, you may need to use _context.Add() and _context.SaveChanges()
     
     
     // --- 3. Generate and Save all Child "Instance" Schedules ---
@@ -121,9 +109,6 @@ public IActionResult CreateRecurring(ScheduleRecurringViewModel vm)
         if (dayFlagMap.TryGetValue(date.DayOfWeek, out var dayFlag) && vm.RecurringWeek.Contains(dayFlag))
         {
             var instanceStartTime = date.Add(vm.StartTime.ToTimeSpan());
-
-            // Skip if this first instance is in the past (already validated, but good check)
-            if (instanceStartTime <= DateTime.Now) continue; 
             
             var instanceSchedule = new Schedule
             {
@@ -151,7 +136,7 @@ public IActionResult CreateRecurring(ScheduleRecurringViewModel vm)
                 GameFeature = parentSchedule.GameFeature,
                 CancellationFreeze = parentSchedule.CancellationFreeze,
                 HostRole = parentSchedule.HostRole,
-                Status = ScheduleStatus.Active, // Or ScheduleStatus.Null
+                Status = ScheduleStatus.Active,
                 
                 // Null out the recurring fields
                 RecurringWeek = null,
@@ -253,9 +238,6 @@ private Dictionary<DayOfWeek, RecurringWeek> BuildDayFlagMap()
 
 
         // --- CREATE COMPETITION ---
-        // POST Action: Handles the form submission
-
-        // --- CREATE COMPETITION ---
         // GET Action: Shows the form
         [HttpGet] // <--- This attribute IS present and correct
         public IActionResult CreateCompetition()
@@ -264,6 +246,8 @@ private Dictionary<DayOfWeek, RecurringWeek> BuildDayFlagMap()
             return View(new ScheduleCompetitionViewModel());
         }
 
+        // --- CREATE COMPETITION ---
+        // POST Action: Handles the form submission
 [HttpPost]
 [ValidateAntiForgeryToken]
 public IActionResult CreateCompetition(ScheduleCompetitionViewModel vm)
@@ -319,9 +303,6 @@ public IActionResult CreateCompetition(ScheduleCompetitionViewModel vm)
     // 2. Create the linked Competition entity
     var newCompetition = new Competition
     {
-        // --- REMOVED Format assignment ---
-        // Format = vm.Format, // This will be set in SetupMatch
-        // Set other defaults if needed, or rely on model defaults
         NumPool = 4, // Example default if needed here
         WinnersPerPool = 1,
         ThirdPlaceMatch = true,
