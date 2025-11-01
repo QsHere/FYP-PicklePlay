@@ -1,220 +1,272 @@
 @model ScheduleCompetitionViewModel
 @using FYP_QS_CODE.Models
 @{
-    ViewData["Title"] = "Create Competition Schedule";
+    // Check if we are in "Edit" mode (if a ScheduleId > 0 is passed) or "Create" mode
+    bool isEditMode = Model.ScheduleId > 0;
+    ViewData["Title"] = isEditMode ? "Edit Competition" : "Create New Competition";
 }
 
-<div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3>Create Competition</h3>
-        <button type="button" class="btn btn-outline-secondary" onclick="confirmExit()">Back</button>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded shadow-sm">
+        <h3>@ViewData["Title"]</h3>
+        
+        @* Back button logic *@
+        @if (isEditMode)
+        {
+            <a asp-action="CompDetails" asp-controller="Competition" asp-route-id="@Model.ScheduleId" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Back to Details</a>
+        }
+        else
+        {
+            <a asp-action="Index" asp-controller="Community" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Back to Community</a>
+        }
     </div>
 
-    <form asp-action="CreateCompetition" method="post" enctype="multipart/form-data">
+    @* Form tag is updated to work for both Create and Edit *@
+    <form asp-action="@(isEditMode ? "EditCompetition" : "CreateCompetition")" asp-route-id="@Model.ScheduleId" method="post" enctype="multipart/form-data">
+        
         @Html.AntiForgeryToken()
+        
+        @* Hidden fields to track ID and existing image path during edits *@
+        <input type="hidden" asp-for="ScheduleId" />
+        <input type="hidden" asp-for="ExistingImageUrl" />
+
         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-        @* --- General Info --- *@
-        <h5 class="mt-4">General Information</h5>
-        <div class="mb-3">
-            <label asp-for="GameName" class="form-label"></label>
-            <input asp-for="GameName" type="text" maxlength="100" class="form-control"/>
-            <span asp-validation-for="GameName" class="text-danger"></span>
-        </div>
-        
-        <div class="mb-3">
-                <label asp-for="PosterImage" class="form-label"></label>
-                <input asp-for="PosterImage" class="form-control" type="file" accept="image/*" />
-                <span asp-validation-for="PosterImage" class="text-danger"></span>
-            </div>
-
-         <div class="mb-3">
-            <label asp-for="Description" class="form-label"></label>
-            <textarea asp-for="Description" class="form-control" rows="3"></textarea>
-            <span asp-validation-for="Description" class="text-danger"></span>
-        </div>
-
-        @* --- Schedule --- *@
-        <h5 class="mt-4">Schedule</h5>
-         <div class="mb-3">
-            <label asp-for="Location" class="form-label"></label>
-            <input asp-for="Location" type="text" class="form-control"/>
-            <span asp-validation-for="Location" class="text-danger"></span>
-        </div>
         <div class="row">
-             <div class="col-md-6 mb-3">
-                <label asp-for="StartTime" class="form-label"></label>
-                <input asp-for="StartTime" type="datetime-local" class="form-control"/>
-                <span asp-validation-for="StartTime" class="text-danger"></span>
+            @* --- LEFT COLUMN (Core Details & Schedule) --- *@
+            <div class="col-lg-7">
+                
+                @* --- Card 1: Core Details --- *@
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Core Details</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label asp-for="GameName" class="form-label"></label>
+                            <input asp-for="GameName" class="form-control" />
+                            <span asp-validation-for="GameName" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label asp-for="PosterImage" class="form-label"></label>
+                            
+                            @if (isEditMode && !string.IsNullOrEmpty(Model.ExistingImageUrl))
+                            {
+                                <div class="mb-2">
+                                    <img src="@Url.Content(Model.ExistingImageUrl)" alt="Current Poster" style="width: 200px; height: auto; border-radius: 5px; border: 1px solid #ddd;" />
+                                    <p class="form-text text-muted mb-0">Current poster. Upload a new file below to replace it.</p>
+                                </div>
+                            }
+                            
+                            <input asp-for="PosterImage" class="form-control" type="file" accept="image/*" id="PosterImage" />
+                            <span asp-validation-for="PosterImage" class="text-danger"></span>
+                            <span id="fileNameDisplay" class="text-muted small ms-1"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label"></label>
+                            <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label asp-for="Location" class="form-label"></label>
+                            <input asp-for="Location" class="form-control" />
+                            <span asp-validation-for="Location" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                @* --- Card 2: Schedule & Registration --- *@
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Schedule & Registration</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="StartTime" class="form-label"></label>
+                                <input asp-for="StartTime" class="form-control" />
+                                <span asp-validation-for="StartTime" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="EndTime" class="form-label"></label>
+                                <input asp-for="EndTime" class="form-control" />
+                                <span asp-validation-for="EndTime" class="text-danger"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label asp-for="ApproxStartTime" class="form-label"></label>
+                            <input asp-for="ApproxStartTime" class="form-control" />
+                            <span asp-validation-for="ApproxStartTime" class="text-danger"></span>
+                        </div>
+                        
+                        <hr />
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="RegOpen" class="form-label"></label>
+                                <input asp-for="RegOpen" class="form-control" />
+                                <span asp-validation-for="RegOpen" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="RegClose" class="form-label"></label>
+                                <input asp-for="RegClose" class="form-control" />
+                                <span asp-validation-for="RegClose" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="EarlyBirdClose" class="form-label"></label>
+                            <input asp-for="EarlyBirdClose" class="form-control" />
+                            <span asp-validation-for="EarlyBirdClose" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
             </div>
-             <div class="col-md-6 mb-3">
-                <label asp-for="EndTime" class="form-label"></label>
-                <input asp-for="EndTime" type="datetime-local" class="form-control"/>
-                <span asp-validation-for="EndTime" class="text-danger"></span>
+
+            @* --- RIGHT COLUMN (Rules, Fees, Policy) --- *@
+            <div class="col-lg-5">
+
+                @* --- Card 3: Rules & Restrictions --- *@
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Rules & Restrictions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label asp-for="NumTeam" class="form-label"></label>
+                            <input asp-for="NumTeam" type="number" class="form-control" />
+                            <span asp-validation-for="NumTeam" class="text-danger"></span>
+                        </div>
+
+                        <hr />
+                        <h6 class="text-muted">Optional Restrictions</h6>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="MinRankRestriction" class="form-label"></label>
+                                @* FIX: Added value="0.00". asp-for will override this in Edit mode. *@
+                                <input asp-for="MinRankRestriction" type="number" class="form-control" step="0.10" value="0.00" />
+                                <span asp-validation-for="MinRankRestriction" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="MaxRankRestriction" class="form-label"></label>
+                                @* FIX: Added value="3.00". asp-for will override this in Edit mode. *@
+                                <input asp-for="MaxRankRestriction" type="number" class="form-control" step="0.10" value="3.00" />
+                                <span asp-validation-for="MaxRankRestriction" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="GenderRestriction" class="form-label"></label>
+                            <select asp-for="GenderRestriction" class="form-select" asp-items="Html.GetEnumSelectList<GenderRestriction>()"></select>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="AgeGroupRestriction" class="form-label"></label>
+                            <select asp-for="AgeGroupRestriction" class="form-select" asp-items="Html.GetEnumSelectList<AgeGroupRestriction>()"></select>
+                        </div>
+                    </div>
+                </div>
+
+                @* --- Card 4: Fees & Policy --- *@
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Fees & Policy</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                                    <label asp-for="FeeType" class="form-label"></label>
+                                    @{
+                                        // Manually create the list to exclude "AutoSplitTotal"
+                                        var feeTypeOptions = new List<SelectListItem>
+                                        {
+                                            new SelectListItem { Value = ((int)FeeType.None).ToString(), Text = FeeType.None.ToString() },
+                                            new SelectListItem { Value = ((int)FeeType.Free).ToString(), Text = FeeType.Free.ToString() },
+                                            new SelectListItem { Value = ((int)FeeType.PerPerson).ToString(), Text = "Per Team" } // "PerPerson" is used for "Per Team"
+                                        };
+                                    }
+                                    <select asp-for="FeeType" id="FeeTypeSelect" class="form-select" asp-items="feeTypeOptions"></select>
+                                </div>
+                        
+                        @* FIX: Added id="FeeAmountContainer" for the script *@
+                        <div class="mb-3" id="FeeAmountContainer">
+                            <label asp-for="FeeAmount" class="form-label"></label>
+                            <input asp-for="FeeAmount" type="number" step="0.10" class="form-control" />
+                            <span asp-validation-for="FeeAmount" class="text-danger"></span>
+                        </div>
+                        <hr />
+                        <div class="mb-3">
+                            <label asp-for="Privacy" class="form-label"></label>
+                            <select asp-for="Privacy" class="form-select" asp-items="Html.GetEnumSelectList<Privacy>()"></select>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="CancellationFreeze" class="form-label"></label>
+                            <select asp-for="CancellationFreeze" class="form-select" asp-items="Html.GetEnumSelectList<CancellationFreeze>()"></select>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="mb-3">
-            <label asp-for="ApproxStartTime" class="form-label"></label>
-            <input asp-for="ApproxStartTime" type="datetime-local" class="form-control"/>
-            <span asp-validation-for="ApproxStartTime" class="text-danger"></span>
+
+        @* --- Submit Button --- *@
+        <div class="mb-5 mt-3 text-center">
+            <button type="submit" class="btn btn-primary btn-lg px-5">
+                @* Button text changes based on mode *@
+                @(isEditMode ? "Save Changes" : "Create & Continue to Setup")
+            </button>
         </div>
-
-
-        @* --- Registration --- *@
-        <h5 class="mt-4">Registration</h5>
-        <div class="row">
-             <div class="col-md-6 mb-3">
-                <label asp-for="RegOpen" class="form-label"></label>
-                <input asp-for="RegOpen" type="datetime-local" class="form-control"/>
-                <span asp-validation-for="RegOpen" class="text-danger"></span>
-            </div>
-             <div class="col-md-6 mb-3">
-                <label asp-for="RegClose" class="form-label"></label>
-                <input asp-for="RegClose" type="datetime-local" class="form-control"/>
-                <span asp-validation-for="RegClose" class="text-danger"></span>
-            </div>
-        </div>
-         <div class="mb-3">
-            <label asp-for="EarlyBirdClose" class="form-label"></label>
-            <input asp-for="EarlyBirdClose" type="datetime-local" class="form-control"/>
-            <span asp-validation-for="EarlyBirdClose" class="text-danger"></span>
-        </div>
-
-        @* --- Participation & Fees --- *@
-        <h5 class="mt-4">Participation & Fees</h5>
-         <div class="row">
-            <div class="col-md-6 mb-3">
-                <label asp-for="NumTeam" class="form-label"></label>
-                <input asp-for="NumTeam" type="number" class="form-control"/>
-                <span asp-validation-for="NumTeam" class="text-danger"></span>
-            </div>
-             <div class="col-md-6 mb-3">
-                <label asp-for="FeeType" class="form-label"></label>
-                @* --- MODIFIED Fee Type Select --- *@
-                <select asp-for="FeeType" class="form-select" id="feeSelect" onchange="toggleFeeInput()">
-                    @* Manually specify options. Value corresponds to the FeeType enum integer *@
-                    <option value="@((int)FeeType.Free)">Free</option>
-                    <option value="@((int)FeeType.PerPerson)">Per Team</option> @* Display "Per Team", Value maps to PerPerson *@
-                </select>
-                <span asp-validation-for="FeeType" class="text-danger"></span>
-            </div>
-        </div>
-         <div id="feeInput" class="mb-3" style='display:@(Model.FeeType == FeeType.PerPerson ? "block" : "none");'> @* Adjust initial display based on default *@
-            <label asp-for="FeeAmount" class="form-label"></label> @* Label text updated in ViewModel *@
-            <input asp-for="FeeAmount" type="number" class="form-control" placeholder="Enter price per team (RM)" step="0.01"/>
-            <span asp-validation-for="FeeAmount" class="text-danger"></span>
-        </div>
-
-
-
-
-
-        @* --- Restrictions --- *@
-        <h5 class="mt-4">Restrictions</h5>
-        <div class="row">
-            
-    <div class="mb-3">
-        <label asp-for="MinRankRestriction" class="form-label"></label>
-        <input asp-for="MinRankRestriction" type="number" class="form-control" step="0.10" value="0.00" />
-        <span asp-validation-for="MinRankRestriction" class="text-danger"></span>
-    </div>
-
-    
-    <div class="mb-3">
-        <label asp-for="MaxRankRestriction" class="form-label"></label>
-        <input asp-for="MaxRankRestriction" type="number" class="form-control" step="0.10" value="3.00" />
-        <span asp-validation-for="MaxRankRestriction" class="text-danger"></span>
-    </div>
-        </div>
-        <div class="row">
-            <div class="col-md-6 mb-3">
-                <label asp-for="GenderRestriction" class="form-label"></label>
-                <select asp-for="GenderRestriction" class="form-select" asp-items="Html.GetEnumSelectList<GenderRestriction>()"></select>
-                <span asp-validation-for="GenderRestriction" class="text-danger"></span>
-            </div>
-            <div class="col-md-6 mb-3">
-                <label asp-for="AgeGroupRestriction" class="form-label"></label>
-                <select asp-for="AgeGroupRestriction" class="form-select" asp-items="Html.GetEnumSelectList<AgeGroupRestriction>()"></select>
-                <span asp-validation-for="AgeGroupRestriction" class="text-danger"></span>
-            </div>
-        </div>
-
-        @* --- Advanced Options --- *@
-        <h5 class="mt-4">Advanced Options</h5>
-         <div class="row">
-             <div class="col-md-6 mb-3">
-                <label asp-for="CancellationFreeze" class="form-label"></label>
-                <select asp-for="CancellationFreeze" class="form-select" asp-items="Html.GetEnumSelectList<CancellationFreeze>()"></select>
-                <span asp-validation-for="CancellationFreeze" class="text-danger"></span>
-            </div>
-             @* REMOVED HostRole Select *@
-             <div class="col-md-6 mb-3">
-                 <label asp-for="Privacy" class="form-label"></label>
-                 <select asp-for="Privacy" class="form-select" asp-items="Html.GetEnumSelectList<Privacy>()"></select>
-                 <span asp-validation-for="Privacy" class="text-danger"></span>
-             </div>
-         </div>
-
-
-        <div class="mb-3 mt-4">
-        <button type="submit" class="btn btn-primary btn-lg">Create & Continue to Setup</button>
-    </div>
     </form>
 </div>
 
 @section Scripts {
-    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
-    <script>
-        // --- Fee Toggle Script ---
-        function toggleFeeInput(){
-            const feeSelect = document.getElementById("feeSelect");
-            const feeInput = document.getElementById("feeInput");
-             // Value for PerPerson enum member (representing "Per Team")
-             const perTeamValue = "@((int)FeeType.PerPerson)";
-             if(feeSelect.value === perTeamValue){
-                feeInput.style.display = "block";
-            } else {
-                feeInput.style.display = "none";
-                const feeAmountInput = feeInput.querySelector('input');
-                 if(feeAmountInput) { feeAmountInput.value = ''; }
-            }
-        }
-        document.addEventListener("DOMContentLoaded", toggleFeeInput);
-
-        // --- Exit Confirmation Script ---
-         function confirmExit() { /* ... keep existing ... */ }
-
-         // --- Future Time Validation Script ---
-         document.addEventListener("DOMContentLoaded", function() { /* ... keep existing ... */ });
-    </script>
-
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const fileInput = document.getElementById('PosterImage');
-            const fileLabel = document.querySelector('label[for="PosterImage"]');
             
-            // Create a span to show the file name
-            let fileNameSpan = document.createElement('span');
-            fileNameSpan.id = 'fileNameDisplay';
-            fileNameSpan.classList.add('text-muted', 'ms-2');
-            fileLabel.parentNode.appendChild(fileNameSpan);
+            // --- FIX FOR FEE AMOUNT TOGGLE ---
+            const feeTypeSelect = document.getElementById('FeeTypeSelect');
+            const feeAmountContainer = document.getElementById('FeeAmountContainer');
+            
+            // This is the enum value for 'PerPerson'
+            const perPersonValue = '3'; 
+
+            function toggleFeeAmount() {
+                if (feeTypeSelect.value === perPersonValue) {
+                    feeAmountContainer.style.display = 'block';
+                } else {
+                    feeAmountContainer.style.display = 'none';
+                }
+            }
+            
+            // Run on change
+            feeTypeSelect.addEventListener('change', toggleFeeAmount);
+            // Run on page load
+            toggleFeeAmount();
+
+            
+            // --- FIX FOR LOST FILE ON VALIDATION FAIL ---
+            const fileInput = document.getElementById('PosterImage');
+            const fileNameDisplay = document.getElementById('fileNameDisplay');
 
             fileInput.addEventListener('change', function(e) {
                 if (e.target.files.length > 0) {
-                    // Store file name in session storage
                     sessionStorage.setItem('posterImageName', e.target.files[0].name);
-                    fileNameSpan.textContent = e.target.files[0].name;
+                    fileNameDisplay.textContent = e.target.files[0].name;
                 }
             });
 
-            // On page load (including validation failure postback)
             const storedFileName = sessionStorage.getItem('posterImageName');
-            if (storedFileName) {
-                fileNameSpan.textContent = `(Previously selected: ${storedFileName}. Choose again if you wish to change.)`;
+            // Only show this if we are in CREATE mode and a file was stored
+            if (!@isEditMode.ToString().ToLower() && storedFileName) {
+                fileNameDisplay.textContent = `(Previously selected: ${storedFileName}. Choose again.)`;
             }
 
-            // Clear session storage on successful submit
-            const form = document.querySelector('form[asp-action="CreateCompetition"]');
+            const form = document.querySelector('form');
             if (form) {
                 form.addEventListener('submit', function() {
                     if (fileInput.files.length > 0 || $(form).valid()) {

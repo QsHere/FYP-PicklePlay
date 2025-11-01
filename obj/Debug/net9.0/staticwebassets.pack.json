@@ -33,6 +33,10 @@
       "PackagePath": "staticwebassets\\img\\logoV4.png"
     },
     {
+      "Id": "C:\\Users\\xkyh0\\Downloads\\FYP_QS_CODEv2\\FYP_QS_CODE\\wwwroot\\img\\posters\\29130311-9879-409d-b5b9-59b0f54b5035_landscape_poster.jpg",
+      "PackagePath": "staticwebassets\\img\\posters\\29130311-9879-409d-b5b9-59b0f54b5035_landscape_poster.jpg"
+    },
+    {
       "Id": "C:\\Users\\xkyh0\\Downloads\\FYP_QS_CODEv2\\FYP_QS_CODE\\wwwroot\\img\\posters\\b971c600-4540-47a5-a7f6-d60c48c096ee_landscape_poster.jpg",
       "PackagePath": "staticwebassets\\img\\posters\\b971c600-4540-47a5-a7f6-d60c48c096ee_landscape_poster.jpg"
     },
@@ -45,8 +49,16 @@
       "PackagePath": "staticwebassets\\img\\posters\\cd4fa635-55e5-4400-90ee-62e2d92cd306_landscape_poster.jpg"
     },
     {
+      "Id": "C:\\Users\\xkyh0\\Downloads\\FYP_QS_CODEv2\\FYP_QS_CODE\\wwwroot\\img\\posters\\efbeb67d-a76a-4186-b324-2e4b4969cdca_landscape_poster.jpg",
+      "PackagePath": "staticwebassets\\img\\posters\\efbeb67d-a76a-4186-b324-2e4b4969cdca_landscape_poster.jpg"
+    },
+    {
       "Id": "C:\\Users\\xkyh0\\Downloads\\FYP_QS_CODEv2\\FYP_QS_CODE\\wwwroot\\img\\posters\\f3d7e3da-b6cf-41d5-b42d-e8f14bd6e029_landscape_poster.jpg",
       "PackagePath": "staticwebassets\\img\\posters\\f3d7e3da-b6cf-41d5-b42d-e8f14bd6e029_landscape_poster.jpg"
+    },
+    {
+      "Id": "C:\\Users\\xkyh0\\Downloads\\FYP_QS_CODEv2\\FYP_QS_CODE\\wwwroot\\img\\posters\\fc22a191-aeac-4523-8690-7b594535600e_landscape_poster.jpg",
+      "PackagePath": "staticwebassets\\img\\posters\\fc22a191-aeac-4523-8690-7b594535600e_landscape_poster.jpg"
     },
     {
       "Id": "C:\\Users\\xkyh0\\Downloads\\FYP_QS_CODEv2\\FYP_QS_CODE\\wwwroot\\img\\posters\\fdcc4ae8-afa0-442b-927b-fca5aad11266_verticle_poster2.webp",

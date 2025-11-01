@@ -203,14 +203,14 @@ namespace FYP_QS_CODE.Controllers
             return View(new ScheduleCompetitionViewModel());
         }
 
-        // --- CREATE COMPETITION ---
-        // POST Action: Handles the form submission
+        // --- 
+        // --- CREATE COMPETITION (POST) ---
+        // --- 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        // --- 7. UPDATE THE METHOD SIGNATURE ---
         public async Task<IActionResult> CreateCompetition(ScheduleCompetitionViewModel vm)
         {
-            // --- Server-side validation (Keep existing date/fee checks) ---
+            // --- Server-side validation ---
             if (vm.EndTime <= vm.StartTime) { ModelState.AddModelError("EndTime", "End Date & Time must be after Start Date & Time."); }
             if (vm.RegClose <= vm.RegOpen) { ModelState.AddModelError("RegClose", "Registration Close Date must be after Registration Open Date."); }
             if (vm.RegClose >= vm.StartTime) { ModelState.AddModelError("RegClose", "Registration must close before the competition starts."); }
@@ -219,34 +219,13 @@ namespace FYP_QS_CODE.Controllers
             if (vm.FeeType == FeeType.PerPerson && !vm.FeeAmount.HasValue) { ModelState.AddModelError("FeeAmount", "Fee Amount is required for Per Team fee type."); }
             if (vm.StartTime <= DateTime.Now) { ModelState.AddModelError("StartTime", "Competition Start Date & Time must be in the future."); }
 
-
             if (!ModelState.IsValid)
             {
                 return View(vm);
             }
     
             // --- 1. Handle File Upload FIRST ---
-            string? uniqueImagePath = null;
-            if (vm.PosterImage != null)
-            {
-                // 1a. Define a path to save the image
-                string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "img/posters");
-                Directory.CreateDirectory(uploadsFolder); // Ensures the folder exists
-
-                // 1b. Create a unique filename to avoid conflicts
-                string uniqueFileName = Guid.NewGuid().ToString() + "_" + vm.PosterImage.FileName;
-                string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                // 1c. Save the file
-                using (var fileStream = new FileStream(filePath, FileMode.Create))
-                {
-                    // --- This 'await' is what caused the error ---
-                    await vm.PosterImage.CopyToAsync(fileStream);
-                }
-
-                // 1d. Store the *relative* path for the database
-                uniqueImagePath = "/img/posters/" + uniqueFileName;
-            }
+            string? uniqueImagePath = await ProcessUploadedImage(vm.PosterImage);
 
             // 2. Map ViewModel to Schedule Model
             var newSchedule = new Schedule
@@ -275,7 +254,7 @@ namespace FYP_QS_CODE.Controllers
                 CancellationFreeze = vm.CancellationFreeze,
                 HostRole = HostRole.HostOnly, 
                 Status = ScheduleStatus.PendingSetup, 
-                CompetitionImageUrl = uniqueImagePath // <-- Assign the new path
+                CompetitionImageUrl = uniqueImagePath
             };
 
             // 3. Create the linked Competition entity
@@ -288,10 +267,10 @@ namespace FYP_QS_CODE.Controllers
                 StandingCalculation = StandingCalculation.WinLossPoints
             };
 
-            // 3. Link them
+            // 4. Link them
             newSchedule.Competition = newCompetition;
 
-            // 4. Add the Schedule to the database
+            // 5. Add the Schedule to the database
             try
             {
                 _scheduleRepository.Add(newSchedule);
@@ -304,7 +283,123 @@ namespace FYP_QS_CODE.Controllers
                 return View(vm);
             }
         }
-        // ------------------------
+        // --- 
+        // --- EDIT COMPETITION (GET) ---
+        // --- 
+        [HttpGet]
+        public async Task<IActionResult> EditCompetition(int id)
+        {
+            var schedule = await _context.Schedules.FindAsync(id);
+            if (schedule == null || schedule.ScheduleType != ScheduleType.Competition)
+            {
+                return NotFound();
+            }
+
+            var vm = new ScheduleCompetitionViewModel
+            {
+                ScheduleId = schedule.ScheduleId,
+                ExistingImageUrl = schedule.CompetitionImageUrl,
+                GameName = schedule.GameName,
+                Description = schedule.Description,
+                Location = schedule.Location,
+                StartTime = schedule.StartTime ?? DateTime.Now, // Handle potential nulls
+                EndTime = schedule.EndTime ?? DateTime.Now,
+                ApproxStartTime = schedule.ApproxStartTime,
+                RegOpen = schedule.RegOpen ?? DateTime.Now,
+                RegClose = schedule.RegClose ?? DateTime.Now,
+                EarlyBirdClose = schedule.EarlyBirdClose,
+                NumTeam = schedule.NumTeam ?? 8,
+                MinRankRestriction = schedule.MinRankRestriction,
+                MaxRankRestriction = schedule.MaxRankRestriction,
+                GenderRestriction = schedule.GenderRestriction ?? Models.GenderRestriction.None,
+                AgeGroupRestriction = schedule.AgeGroupRestriction ?? Models.AgeGroupRestriction.Adult,
+                FeeType = schedule.FeeType ?? Models.FeeType.Free,
+                FeeAmount = schedule.FeeAmount,
+                Privacy = schedule.Privacy ?? Models.Privacy.Public,
+
+                // --- THIS IS THE FIX for CS0117 ---
+                CancellationFreeze = schedule.CancellationFreeze ?? Models.CancellationFreeze.None,
+            };
+
+            // "CreateCompetition" is the correct view name, as it's our shared edit/create form
+            return View("CreateCompetition", vm);
+        }
+
+        // --- 
+        // --- EDIT COMPETITION (POST) ---
+        // --- 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditCompetition(int id, ScheduleCompetitionViewModel vm)
+        {
+            if (id != vm.ScheduleId) return BadRequest();
+            
+            // Re-run validation
+            if (vm.EndTime <= vm.StartTime) { ModelState.AddModelError("EndTime", "End Date & Time must be after Start Date & Time."); }
+            if (vm.RegClose <= vm.RegOpen) { ModelState.AddModelError("RegClose", "Registration Close Date must be after Registration Open Date."); }
+            if (vm.RegClose >= vm.StartTime) { ModelState.AddModelError("RegClose", "Registration must close before the competition starts."); }
+            // ... (add other validation checks as needed) ...
+
+            if (!ModelState.IsValid)
+            {
+                // Must re-populate ExistingImageUrl if validation fails
+                vm.ExistingImageUrl = vm.ExistingImageUrl; // It was posted back in a hidden field
+                return View("CreateCompetition", vm);
+            }
+
+            var scheduleToUpdate = await _context.Schedules.FindAsync(id);
+            if (scheduleToUpdate == null) return NotFound();
+
+            // Handle file upload
+            if (vm.PosterImage != null)
+            {
+                // Delete old image if it exists
+                if (!string.IsNullOrEmpty(scheduleToUpdate.CompetitionImageUrl))
+                {
+                    var oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, scheduleToUpdate.CompetitionImageUrl.TrimStart('/'));
+                    if (System.IO.File.Exists(oldImagePath))
+                    {
+                        System.IO.File.Delete(oldImagePath);
+                    }
+                }
+                // Save new image
+                scheduleToUpdate.CompetitionImageUrl = await ProcessUploadedImage(vm.PosterImage);
+            }
+
+            // Map all other properties
+            scheduleToUpdate.GameName = vm.GameName;
+            scheduleToUpdate.Description = vm.Description;
+            scheduleToUpdate.Location = vm.Location;
+            scheduleToUpdate.StartTime = vm.StartTime;
+            scheduleToUpdate.EndTime = vm.EndTime;
+            scheduleToUpdate.ApproxStartTime = vm.ApproxStartTime;
+            scheduleToUpdate.RegOpen = vm.RegOpen;
+            scheduleToUpdate.RegClose = vm.RegClose;
+            scheduleToUpdate.EarlyBirdClose = vm.EarlyBirdClose;
+            scheduleToUpdate.NumTeam = vm.NumTeam;
+            scheduleToUpdate.MinRankRestriction = vm.MinRankRestriction;
+            scheduleToUpdate.MaxRankRestriction = vm.MaxRankRestriction;
+            scheduleToUpdate.GenderRestriction = vm.GenderRestriction;
+            scheduleToUpdate.AgeGroupRestriction = vm.AgeGroupRestriction;
+            scheduleToUpdate.FeeType = vm.FeeType;
+            scheduleToUpdate.FeeAmount = (vm.FeeType == FeeType.PerPerson) ? vm.FeeAmount : null;
+            scheduleToUpdate.Privacy = vm.Privacy;
+            scheduleToUpdate.CancellationFreeze = vm.CancellationFreeze;
+
+            try
+            {
+                _context.Update(scheduleToUpdate);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Competition details updated successfully!";
+                return RedirectToAction("CompDetails", "Competition", new { id = scheduleToUpdate.ScheduleId });
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", $"An error occurred updating the competition: {ex.Message}");
+                vm.ExistingImageUrl = scheduleToUpdate.CompetitionImageUrl; // Pass back current image
+                return View("CreateCompetition", vm);
+            }
+        }
 
 
         // GET: /Community/SetupMatch/{id}
@@ -427,14 +522,14 @@ public IActionResult SetupMatch(int id, CompetitionSetupViewModel vm)
 }
 
         // ------------------------
-        
+
         // POST: /Community/Publish/{id}
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Publish(int id)
         {
             var scheduleToPublish = _context.Schedules
-                                          .Include(s => s.Competition) 
+                                          .Include(s => s.Competition)
                                           .FirstOrDefault(s => s.ScheduleId == id);
 
             if (scheduleToPublish == null)
@@ -445,29 +540,57 @@ public IActionResult SetupMatch(int id, CompetitionSetupViewModel vm)
 
             if (scheduleToPublish.ScheduleType != ScheduleType.Competition || scheduleToPublish.Competition == null)
             {
-                 TempData["ErrorMessage"] = "This schedule is not a competition or is missing details.";
-                 return RedirectToAction("Index");
+                TempData["ErrorMessage"] = "This schedule is not a competition or is missing details.";
+                return RedirectToAction("Index");
             }
 
             if (scheduleToPublish.Status != ScheduleStatus.PendingSetup)
             {
-                 TempData["ErrorMessage"] = "This competition cannot be published because its status is not 'Pending Setup'.";
-                 return RedirectToAction("Index");
+                TempData["ErrorMessage"] = "This competition cannot be published because its status is not 'Pending Setup'.";
+                return RedirectToAction("Index");
             }
 
             scheduleToPublish.Status = ScheduleStatus.Active;
 
             try
             {
-                _context.SaveChanges(); 
+                _context.SaveChanges();
                 TempData["SuccessMessage"] = $"Competition '{scheduleToPublish.GameName}' published successfully!";
             }
             catch (Exception ex)
             {
-                 TempData["ErrorMessage"] = $"Error publishing competition: {ex.Message}";
+                TempData["ErrorMessage"] = $"Error publishing competition: {ex.Message}";
             }
 
-            return RedirectToAction("Index"); 
+            return RedirectToAction("Index");
+        }
+        
+        // --- 
+        // --- NEW: Helper method for processing images (FIX for CS0103) ---
+        // --- 
+        private async Task<string?> ProcessUploadedImage(IFormFile? posterImage)
+        {
+            if (posterImage == null || posterImage.Length == 0) return null;
+
+            string uniqueImagePath;
+            // Path relative to wwwroot
+            string uploadsFolderRelative = "img/posters";
+            // Full path to save the file
+            string uploadsFolderAbsolute = Path.Combine(_webHostEnvironment.WebRootPath, uploadsFolderRelative);
+            
+            Directory.CreateDirectory(uploadsFolderAbsolute); // Ensures the folder exists
+
+            string uniqueFileName = Guid.NewGuid().ToString() + "_" + posterImage.FileName;
+            string filePath = Path.Combine(uploadsFolderAbsolute, uniqueFileName);
+
+            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            {
+                await posterImage.CopyToAsync(fileStream);
+            }
+
+            // Store the relative path (with forward slashes for web)
+            uniqueImagePath = $"/{uploadsFolderRelative}/{uniqueFileName}";
+            return uniqueImagePath;
         }
 
         // --- HELPER METHODS FOR RECURRING ---

@@ -6,6 +6,8 @@ namespace FYP_QS_CODE.Models
 {
     public class ScheduleCompetitionViewModel
     {
+        public int ScheduleId { get; set; }
+        public string? ExistingImageUrl { get; set; }
         // --- Schedule Fields ---
         [Display(Name = "Competition Name")]
         [Required]

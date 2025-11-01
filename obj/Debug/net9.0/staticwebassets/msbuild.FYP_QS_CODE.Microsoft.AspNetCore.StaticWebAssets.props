@@ -144,6 +144,24 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\img\logoV4.png'))</OriginalItemSpec>
     </StaticWebAsset>
+    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\img\posters\29130311-9879-409d-b5b9-59b0f54b5035_landscape_poster.jpg'))">
+      <SourceType>Package</SourceType>
+      <SourceId>FYP_QS_CODE</SourceId>
+      <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
+      <BasePath>_content/FYP_QS_CODE</BasePath>
+      <RelativePath>img/posters/29130311-9879-409d-b5b9-59b0f54b5035_landscape_poster.jpg</RelativePath>
+      <AssetKind>All</AssetKind>
+      <AssetMode>All</AssetMode>
+      <AssetRole>Primary</AssetRole>
+      <RelatedAsset></RelatedAsset>
+      <AssetTraitName></AssetTraitName>
+      <AssetTraitValue></AssetTraitValue>
+      <Fingerprint>ibdu2adil6</Fingerprint>
+      <Integrity>Emcbj3W7VES7KG5WA64XIi/OgcqzN7In0lEYMYiVo2Q=</Integrity>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\img\posters\29130311-9879-409d-b5b9-59b0f54b5035_landscape_poster.jpg'))</OriginalItemSpec>
+    </StaticWebAsset>
     <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\img\posters\b971c600-4540-47a5-a7f6-d60c48c096ee_landscape_poster.jpg'))">
       <SourceType>Package</SourceType>
       <SourceId>FYP_QS_CODE</SourceId>
@@ -198,6 +216,24 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\img\posters\cd4fa635-55e5-4400-90ee-62e2d92cd306_landscape_poster.jpg'))</OriginalItemSpec>
     </StaticWebAsset>
+    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\img\posters\efbeb67d-a76a-4186-b324-2e4b4969cdca_landscape_poster.jpg'))">
+      <SourceType>Package</SourceType>
+      <SourceId>FYP_QS_CODE</SourceId>
+      <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
+      <BasePath>_content/FYP_QS_CODE</BasePath>
+      <RelativePath>img/posters/efbeb67d-a76a-4186-b324-2e4b4969cdca_landscape_poster.jpg</RelativePath>
+      <AssetKind>All</AssetKind>
+      <AssetMode>All</AssetMode>
+      <AssetRole>Primary</AssetRole>
+      <RelatedAsset></RelatedAsset>
+      <AssetTraitName></AssetTraitName>
+      <AssetTraitValue></AssetTraitValue>
+      <Fingerprint>ibdu2adil6</Fingerprint>
+      <Integrity>Emcbj3W7VES7KG5WA64XIi/OgcqzN7In0lEYMYiVo2Q=</Integrity>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\img\posters\efbeb67d-a76a-4186-b324-2e4b4969cdca_landscape_poster.jpg'))</OriginalItemSpec>
+    </StaticWebAsset>
     <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\img\posters\f3d7e3da-b6cf-41d5-b42d-e8f14bd6e029_landscape_poster.jpg'))">
       <SourceType>Package</SourceType>
       <SourceId>FYP_QS_CODE</SourceId>
@@ -215,6 +251,24 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\img\posters\f3d7e3da-b6cf-41d5-b42d-e8f14bd6e029_landscape_poster.jpg'))</OriginalItemSpec>
+    </StaticWebAsset>
+    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\img\posters\fc22a191-aeac-4523-8690-7b594535600e_landscape_poster.jpg'))">
+      <SourceType>Package</SourceType>
+      <SourceId>FYP_QS_CODE</SourceId>
+      <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
+      <BasePath>_content/FYP_QS_CODE</BasePath>
+      <RelativePath>img/posters/fc22a191-aeac-4523-8690-7b594535600e_landscape_poster.jpg</RelativePath>
+      <AssetKind>All</AssetKind>
+      <AssetMode>All</AssetMode>
+      <AssetRole>Primary</AssetRole>
+      <RelatedAsset></RelatedAsset>
+      <AssetTraitName></AssetTraitName>
+      <AssetTraitValue></AssetTraitValue>
+      <Fingerprint>ibdu2adil6</Fingerprint>
+      <Integrity>Emcbj3W7VES7KG5WA64XIi/OgcqzN7In0lEYMYiVo2Q=</Integrity>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\img\posters\fc22a191-aeac-4523-8690-7b594535600e_landscape_poster.jpg'))</OriginalItemSpec>
     </StaticWebAsset>
     <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\img\posters\fdcc4ae8-afa0-442b-927b-fca5aad11266_verticle_poster2.webp'))">
       <SourceType>Package</SourceType>
