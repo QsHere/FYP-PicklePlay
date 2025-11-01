@@ -112,16 +112,19 @@
         @* --- Restrictions --- *@
         <h5 class="mt-4">Restrictions</h5>
         <div class="row">
-            <div class="col-md-6 mb-3">
-                <label asp-for="MinRankRestriction" class="form-label"></label>
-                <input asp-for="MinRankRestriction" type="number" class="form-control" step="0.01"/>
-                <span asp-validation-for="MinRankRestriction" class="text-danger"></span>
-            </div>
-            <div class="col-md-6 mb-3">
-                <label asp-for="MaxRankRestriction" class="form-label"></label>
-                <input asp-for="MaxRankRestriction" type="number" class="form-control" step="0.01"/>
-                <span asp-validation-for="MaxRankRestriction" class="text-danger"></span>
-            </div>
+            
+    <div class="mb-3">
+        <label asp-for="MinRankRestriction" class="form-label"></label>
+        <input asp-for="MinRankRestriction" type="number" class="form-control" step="0.10" value="0.00" />
+        <span asp-validation-for="MinRankRestriction" class="text-danger"></span>
+    </div>
+
+    
+    <div class="mb-3">
+        <label asp-for="MaxRankRestriction" class="form-label"></label>
+        <input asp-for="MaxRankRestriction" type="number" class="form-control" step="0.10" value="3.00" />
+        <span asp-validation-for="MaxRankRestriction" class="text-danger"></span>
+    </div>
         </div>
         <div class="row">
             <div class="col-md-6 mb-3">
@@ -183,5 +186,42 @@
 
          // --- Future Time Validation Script ---
          document.addEventListener("DOMContentLoaded", function() { /* ... keep existing ... */ });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.getElementById('PosterImage');
+            const fileLabel = document.querySelector('label[for="PosterImage"]');
+            
+            // Create a span to show the file name
+            let fileNameSpan = document.createElement('span');
+            fileNameSpan.id = 'fileNameDisplay';
+            fileNameSpan.classList.add('text-muted', 'ms-2');
+            fileLabel.parentNode.appendChild(fileNameSpan);
+
+            fileInput.addEventListener('change', function(e) {
+                if (e.target.files.length > 0) {
+                    // Store file name in session storage
+                    sessionStorage.setItem('posterImageName', e.target.files[0].name);
+                    fileNameSpan.textContent = e.target.files[0].name;
+                }
+            });
+
+            // On page load (including validation failure postback)
+            const storedFileName = sessionStorage.getItem('posterImageName');
+            if (storedFileName) {
+                fileNameSpan.textContent = `(Previously selected: ${storedFileName}. Choose again if you wish to change.)`;
+            }
+
+            // Clear session storage on successful submit
+            const form = document.querySelector('form[asp-action="CreateCompetition"]');
+            if (form) {
+                form.addEventListener('submit', function() {
+                    if (fileInput.files.length > 0 || $(form).valid()) {
+                         sessionStorage.removeItem('posterImageName');
+                    }
+                });
+            }
+        });
     </script>
 }

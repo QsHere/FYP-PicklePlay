@@ -179,8 +179,7 @@ namespace FYP_QS_CODE.Controllers
                 FeeAmount = (vm.FeeType == FeeType.AutoSplitTotal || vm.FeeType == FeeType.PerPerson) ? vm.FeeAmount : null,
                 Privacy = vm.Privacy,
                 GameFeature = vm.GameFeature,
-                CancellationFreeze = vm.CancellationFreeze,
-                Repeat = vm.Repeat,
+                CancellationFreeze = vm.CancellationFreeze,                
                 HostRole = vm.HostRole,
                 Status = ScheduleStatus.Active // Set status
             };

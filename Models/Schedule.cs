@@ -51,11 +51,11 @@ namespace FYP_QS_CODE.Models
         [Column("num_team")]
         public int? NumTeam { get; set; }
 
-        [Column("minRankRestriction", TypeName = "decimal(5,4)")]
-        public decimal? MinRankRestriction { get; set; }
+        [Column("minRankRestriction", TypeName = "decimal(5,2)")]
+        public decimal? MinRankRestriction { get; set; } = 0.00m;
 
-        [Column("maxRankRestriction", TypeName = "decimal(5,4)")]
-        public decimal? MaxRankRestriction { get; set; }
+        [Column("maxRankRestriction", TypeName = "decimal(5,2)")]
+        public decimal? MaxRankRestriction { get; set; } = 3.00m;
 
         [Column("genderRestriction")] // Removed TypeName
         public GenderRestriction? GenderRestriction { get; set; } = Models.GenderRestriction.None;
@@ -78,8 +78,6 @@ namespace FYP_QS_CODE.Models
         [Column("cancellationfreeze")] // Removed TypeName
         public CancellationFreeze? CancellationFreeze { get; set; } = Models.CancellationFreeze.None;
 
-        [Column("repeat")] // Removed TypeName
-        public Repeat? Repeat { get; set; } = Models.Repeat.None;
 
         // --- NEW PROPERTIES ADDED ---
         [Column("recurringWeek")]

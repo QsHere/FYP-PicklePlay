@@ -54,8 +54,6 @@ namespace FYP_QS_CODE.Models
         [Required]
         public CancellationFreeze CancellationFreeze { get; set; } = CancellationFreeze.None;
 
-        [Required]
-        public Repeat Repeat { get; set; } = Repeat.None;
 
         [Display(Name = "Host Role")]
         [Required]

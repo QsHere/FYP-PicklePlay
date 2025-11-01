@@ -96,7 +96,14 @@
                   </div>
             </div>
             <hr />
+            <div class="mb-3">
+        <label asp-for="MatchRule" class="form-label">Match Rules (for Pool Play)</label>
+        <textarea asp-for="MatchRule" class="form-control" rows="3" placeholder="e.g., 'Games to 11, win by 2.'"></textarea>
+        <small class="form-text text-muted">Define the rules for all matches in this stage.</small>
+    </div>
         </div>
+
+        
 
         @* --- Elimination Specific Section --- *@
         <div id="eliminationOptions" style="display: none;"> @* Hidden by default *@

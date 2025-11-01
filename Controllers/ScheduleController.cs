@@ -74,7 +74,7 @@ namespace FYP_QS_CODE.Controllers
 
                 // One-Off specific
                 StartTime = schedule.StartTime, // Keep as DateTime?
-                Repeat = schedule.Repeat ?? Models.Repeat.None,
+                
 
                 // Recurring specific
                 RecurringWeek = new List<RecurringWeek>(), // Initialize
@@ -227,12 +227,12 @@ public IActionResult Edit(int id, ScheduleEditViewModel vm)
                 foreach (var day in vm.RecurringWeek) { combinedWeek |= day; }
             }
             scheduleToUpdate.RecurringWeek = combinedWeek;
-            scheduleToUpdate.Repeat = null;
+           
         }
         else // OneOff
         {
             scheduleToUpdate.StartTime = vm.StartTime; // Already checked for null
-            scheduleToUpdate.Repeat = vm.Repeat;
+            
             scheduleToUpdate.RecurringWeek = null;
             scheduleToUpdate.AutoCreateWhen = null;
         }

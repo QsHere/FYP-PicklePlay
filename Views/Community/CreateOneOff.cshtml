@@ -84,16 +84,22 @@
 
         <h5 class="mt-4">Restrictions</h5>
         <div class="row">
-            <div class="col-md-6 mb-3">
-                <label asp-for="MinRankRestriction" class="form-label"></label>
-                <input asp-for="MinRankRestriction" type="number" class="form-control" />
-                <span asp-validation-for="MinRankRestriction" class="text-danger"></span>
-            </div>
-            <div class="col-md-6 mb-3">
-                <label asp-for="MaxRankRestriction" class="form-label"></label>
-                <input asp-for="MaxRankRestriction" type="number" class="form-control" />
-                <span asp-validation-for="MaxRankRestriction" class="text-danger"></span>
-            </div>
+            <div class="col-md-6">
+  
+        <div class="mb-3">
+            <label asp-for="MinRankRestriction" class="form-label"></label>
+            <input asp-for="MinRankRestriction" type="number" class="form-control" step="0.10" value="0.00" />
+            <span asp-validation-for="MinRankRestriction" class="text-danger"></span>
+        </div>
+    </div>
+    <div class="col-md-6">
+    
+        <div class="mb-3">
+            <label asp-for="MaxRankRestriction" class="form-label"></label>
+            <input asp-for="MaxRankRestriction" type="number" class="form-control" step="0.10" value="3.00" />
+            <span asp-validation-for="MaxRankRestriction" class="text-danger"></span>
+        </div>
+    </div>
         </div>
         <div class="row">
             <div class="col-md-6 mb-3">
@@ -114,11 +120,7 @@
             <select asp-for="CancellationFreeze" asp-items="Html.GetEnumSelectList<CancellationFreeze>()" class="form-select"></select>
             <span asp-validation-for="CancellationFreeze" class="text-danger"></span>
         </div>
-        <div class="mb-3">
-            <label asp-for="Repeat" class="form-label"></label>
-            <select asp-for="Repeat" asp-items="Html.GetEnumSelectList<Repeat>()" class="form-select"></select>
-            <span asp-validation-for="Repeat" class="text-danger"></span>
-        </div>
+     
         <div class="mb-3">
             <label asp-for="HostRole" class="form-label"></label>
             <select asp-for="HostRole" asp-items="Html.GetEnumSelectList<HostRole>()" class="form-select"></select>
