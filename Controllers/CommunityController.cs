@@ -367,7 +367,8 @@ public IActionResult SetupMatch(int id, CompetitionSetupViewModel vm)
         return NotFound("Competition or schedule not found for update.");
     }
 
-    scheduleToUpdate.Competition.Format = vm.Format;
+            scheduleToUpdate.Competition.Format = vm.Format;
+    scheduleToUpdate.Competition.MatchRule = vm.MatchRule;
 
     if (vm.Format == CompetitionFormat.PoolPlay)
     {
@@ -384,7 +385,6 @@ public IActionResult SetupMatch(int id, CompetitionSetupViewModel vm)
         }
         scheduleToUpdate.Competition.ThirdPlaceMatch = true; 
         scheduleToUpdate.Competition.DoublePool = false;   
-        scheduleToUpdate.Competition.MatchRule = null; 
 
     }
     else if (vm.Format == CompetitionFormat.Elimination)
